@@ -1,0 +1,30 @@
+name "trajectory_controller"
+version "0.1"
+
+import_types_from "base"
+import_types_from "controldev"
+
+
+using_library "trajectory_follower"
+
+
+task_context "Task" do
+    input_port("trajectory", "/std/vector</wrappers/Waypoint>").
+        doc "Trajectory the robot should follow"
+
+    input_port("pose", "wrappers/samples/RigidBodyState").
+        doc "Position and orientation of the Robot"
+
+    output_port("motionCommand", "controldev/MotionCommand").
+        doc "Drive command that should steer the robot to the target Pose"
+
+    output_port('four_wheel_command', 'controldev::FourWheelCommand').
+        doc('Reference velocity for PIV controller')
+
+    output_port("currentWaypoint", "wrappers/Waypoint")
+
+    needs_configuration
+    port_driven
+end
+
+
