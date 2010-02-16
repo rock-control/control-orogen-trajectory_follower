@@ -21,7 +21,7 @@ task_context "Task" do
     output_port('four_wheel_command', 'controldev::FourWheelCommand').
         doc('Reference velocity for PIV controller')
 
-    output_port("currentWaypoint", "wrappers/Waypoint")
+    output_port("currentCurvePoint", "wrappers/Waypoint")
 
     needs_configuration
     port_driven
