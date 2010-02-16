@@ -4,10 +4,8 @@ version "0.1"
 import_types_from "base"
 import_types_from "controldev"
 
-
 using_library "trajectory_follower"
 using_library "base-lib"
-
 
 task_context "Task" do
     input_port("trajectory", "/std/vector</wrappers/Waypoint>").
