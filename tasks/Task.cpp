@@ -64,6 +64,8 @@ bool Task::startHook()
     return true;
 }
 
+
+// QUICK FIX
 double heading(Eigen::Quaterniond q)
 {
     return atan( 2*(q.x()*q.w()+q.y()*q.z())/(1-2*(q.z()*q.z()+q.w()*q.w())) );
@@ -134,6 +136,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	refVel.target[RL] = velLeftWheel;
 	refVel.target[FR] = velRightWheel;
 	refVel.target[RR] = velRightWheel;
+	refVel.sync = false;
 
 	if(_motionCommand.connected())
 	    _motionCommand.write(mc);
