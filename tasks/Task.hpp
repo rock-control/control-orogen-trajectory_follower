@@ -3,7 +3,7 @@
 
 #include "trajectory_controller/TaskBase.hpp"
  
-#include "NURBSCurve3D.hh"
+#include "base/geometry/NURBSCurve3D.h"
 #include "TrajectoryController_NoOrientation.h" 
 #include "TrajectoryController_P.h" 
 #include "TrajectoryController_PI.h" 
@@ -22,7 +22,7 @@ namespace trajectory_controller {
     {
 	friend class TaskBase;
 
-	geometry::NURBSCurve3D oCurve;
+        base::geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
 
 	Eigen::Vector3d error;

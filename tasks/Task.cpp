@@ -18,7 +18,7 @@
 #define SEARCH_DIST 0.05  // Distance that will be searched along the curve for the closest point
 
 using namespace trajectory_controller;
-using namespace geometry;
+using namespace base::geometry;
 using namespace hbridge;
 using namespace Eigen;
 
