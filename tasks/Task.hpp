@@ -2,11 +2,14 @@
 #define TRAJECTORY_CONTROLLER_TASK_TASK_HPP
 
 #include "trajectory_controller/TaskBase.hpp"
-
+ 
+#include "NURBSCurve3D.hh"
 #include "TrajectoryController_NoOrientation.h" 
 #include "TrajectoryController_P.h" 
 #include "TrajectoryController_PI.h" 
 
+#include <Eigen/Core>
+#include <Eigen/Geometry> 
 
 namespace RTT
 {
@@ -19,8 +22,11 @@ namespace trajectory_controller {
     {
 	friend class TaskBase;
 
-	CubicCurve3D oCurve;
+	geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
+
+	Eigen::Vector3d error;
+	double para;
 
 	float u1;  // forward velocity
 	float l1;  // 10 cm infront of CoG
@@ -30,12 +36,14 @@ namespace trajectory_controller {
 	TrajectoryController::TrajectoryController_NoOrientation oTrajController_NO;
 
 	// Trajectory controller P
-	float K0_P, K2_P, K3_P;
+	float K2_P, K3_P;
 	TrajectoryController::TrajectoryController_P oTrajController_P;
 	
 	float K0_PI, K2_PI, K3_PI;
 	TrajectoryController::TrajectoryController_PI oTrajController_PI;
 
+	Eigen::Vector2d motionCmd;
+	double velLeftWheel, velRightWheel;
 
     protected:
    	
