@@ -45,17 +45,16 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
 bool Task::startHook()
 {
     forwardVelocity = 0.05;  // forward velocity
-    double l1 = 0.00;  // 10 cm infront of CoG
-    double R  = 0.45;   // distance between wheels
-    double r  = 0.018;  // wheel radius
+    l1 = 0.00;  // 10 cm infront of CoG
+    
     double K0 = 5.0;
-    oTrajController_NO.setConstants( l1, K0, R, r);
+    oTrajController_NO.setConstants( l1, K0, ROBOT.WIDTH, ROBOT.WHEEL_RADIUS);
 
     double K2_P=150.0, K3_P=150.0;
-    oTrajController_P.setConstants( K2_P, K3_P, R, r);
+    oTrajController_P.setConstants( K2_P, K3_P, ROBOT.WIDTH, ROBOT.WHEEL_RADIUS);
 
     double K0_PI=0.0, K2_PI=150.0, K3_PI=150.0;
-    oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, R, r, SAMPLING_TIME);
+    oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, ROBOT.WIDTH, ROBOT.WHEEL_RADIUS, SAMPLING_TIME);
     
     velLeftWheel = 0.0;
     velRightWheel = 0.0;
@@ -110,6 +109,10 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	rbs = pose;
 	if ( para < oCurve.getEndParam() )
 	{
+
+	    rbs.position.x() = rbs.position.x() + l1 * cos(heading(rbs.orientation));
+	    rbs.position.y() = rbs.position.y() + l1 * sin(heading(rbs.orientation));
+
 	    error = oCurve.poseError(rbs.position, heading(rbs.orientation), para, SEARCH_DIST);
 	    para  = error(2);
 	    

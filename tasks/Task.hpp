@@ -10,6 +10,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry> 
+#include <base/Robot.hpp>
 
 namespace RTT
 {
@@ -22,7 +23,8 @@ namespace trajectory_controller {
     {
 	friend class TaskBase;
 
-        base::geometry::NURBSCurve3D oCurve;
+	base::robot::FourWheelGeom ROBOT;
+	base::geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
 	bool bFirstPose;    // check if the starting pose is added to the trajectory
 
@@ -30,6 +32,7 @@ namespace trajectory_controller {
 	double para;
 
 	double forwardVelocity;
+        double l1;  // Distance infront of CoG for noOrientation controlle for noOrientation controllerr
 	trajectory_follower::noOrientation oTrajController_NO;
 	trajectory_follower::chainedProportional oTrajController_P;
 	trajectory_follower::chainedProportionalIntegral oTrajController_PI;
