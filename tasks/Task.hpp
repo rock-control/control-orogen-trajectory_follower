@@ -4,9 +4,9 @@
 #include "trajectory_controller/TaskBase.hpp"
  
 #include "base/geometry/NURBSCurve3D.h"
-#include "TrajectoryController_NoOrientation.h" 
-#include "TrajectoryController_P.h" 
-#include "TrajectoryController_PI.h" 
+#include "TrajectoryControllerNoOrientation.hpp" 
+#include "TrajectoryControllerP.hpp" 
+#include "TrajectoryControllerPI.hpp" 
 
 #include <Eigen/Core>
 #include <Eigen/Geometry> 
@@ -33,14 +33,14 @@ namespace trajectory_controller {
 	float K0;
 	float R ;  // distance between wheels
 	float r ;  // wheel radius
-	TrajectoryController::TrajectoryController_NoOrientation oTrajController_NO;
+	trajectory_follower::noOrientation oTrajController_NO;
 
 	// Trajectory controller P
 	float K2_P, K3_P;
-	TrajectoryController::TrajectoryController_P oTrajController_P;
+	trajectory_follower::chainedProportional oTrajController_P;
 	
 	float K0_PI, K2_PI, K3_PI;
-	TrajectoryController::TrajectoryController_PI oTrajController_PI;
+	trajectory_follower::chainedProportionalIntegral oTrajController_PI;
 
 	Eigen::Vector2d motionCmd;
 	double velLeftWheel, velRightWheel;
