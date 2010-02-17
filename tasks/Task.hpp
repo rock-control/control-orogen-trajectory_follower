@@ -24,22 +24,14 @@ namespace trajectory_controller {
 
         base::geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
+	bool bFirstPose;    // check if the starting pose is added to the trajectory
 
 	Eigen::Vector3d error;
 	double para;
 
-	float u1;  // forward velocity
-	float l1;  // 10 cm infront of CoG
-	float K0;
-	float R ;  // distance between wheels
-	float r ;  // wheel radius
+	double forwardVelocity;
 	trajectory_follower::noOrientation oTrajController_NO;
-
-	// Trajectory controller P
-	float K2_P, K3_P;
 	trajectory_follower::chainedProportional oTrajController_P;
-	
-	float K0_PI, K2_PI, K3_PI;
 	trajectory_follower::chainedProportionalIntegral oTrajController_PI;
 
 	Eigen::Vector2d motionCmd;

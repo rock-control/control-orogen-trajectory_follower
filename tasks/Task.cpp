@@ -44,23 +44,24 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
 
 bool Task::startHook()
 {
-    u1 = 0.05;  // forward velocity
-    l1 = 0.00;  // 10 cm infront of CoG
-    R  = 0.45;   // distance between wheels
-    r  = 0.018;  // wheel radius
-    K0 = 5.0;
+    forwardVelocity = 0.05;  // forward velocity
+    double l1 = 0.00;  // 10 cm infront of CoG
+    double R  = 0.45;   // distance between wheels
+    double r  = 0.018;  // wheel radius
+    double K0 = 5.0;
     oTrajController_NO.setConstants( l1, K0, R, r);
 
-    K2_P=150.0, K3_P=150.0;
+    double K2_P=150.0, K3_P=150.0;
     oTrajController_P.setConstants( K2_P, K3_P, R, r);
 
-    K0_PI=0.0, K2_PI=150.0, K3_PI=150.0;
+    double K0_PI=0.0, K2_PI=150.0, K3_PI=150.0;
     oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, R, r, SAMPLING_TIME);
     
     velLeftWheel = 0.0;
     velRightWheel = 0.0;
 
     bCurveGenerated = false;
+    bFirstPose = false;
     return true;
 }
 
@@ -76,6 +77,19 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 {
     wrappers::samples::RigidBodyState pose;
     std::vector<wrappers::Waypoint> trajectory;
+    base::samples::RigidBodyState rbs = pose;	
+
+    if(!bFirstPose)
+    {
+	if(_pose.read(pose))
+	{
+	    rbs = pose;
+	    oCurve.addPoint(rbs.position);
+	    bFirstPose = true;
+	}
+	else 
+	    return;
+    }
 
     if(isPortUpdated(_trajectory)) 
     {
@@ -93,21 +107,21 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 
     if(_pose.read(pose) && bCurveGenerated) 
     {
-	base::samples::RigidBodyState rbs = pose;	
+	rbs = pose;
 	if ( para < oCurve.getEndParam() )
 	{
 	    error = oCurve.poseError(rbs.position, heading(rbs.orientation), para, SEARCH_DIST);
 	    para  = error(2);
 	    
-	    motionCmd = oTrajController_NO.update(u1, error(0), error(1)); 
+	    motionCmd = oTrajController_NO.update(forwardVelocity, error(0), error(1)); 
 	    velRightWheel = oTrajController_NO.get_vel_right();
 	    velLeftWheel = oTrajController_NO.get_vel_left();
 
-//	    motionCmd = oTrajController_P->update(u1, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
+//	    motionCmd = oTrajController_P->update(forwardVelocity, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
 //	    velRightWheel = oTrajController_P.get_vel_right();
 //	    velLeftWheel = oTrajController_P.get_vel_left();
 //
-//	    motionCmd = oTrajController_PI->update(u1, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
+//	    motionCmd = oTrajController_PI->update(forwardVelocity, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
 //	    velRightWheel = oTrajController_PI.get_vel_right();
 //	    velLeftWheel = oTrajController_PI.get_vel_left();
 	    
