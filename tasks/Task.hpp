@@ -33,7 +33,7 @@ namespace trajectory_controller {
 
 	double forwardVelocity;
         double l1;  // Distance infront of CoG for noOrientation controlle for noOrientation controllerr
-	trajectory_follower::noOrientation oTrajController_NO;
+	trajectory_follower::noOrientation oTrajController_nO;
 	trajectory_follower::chainedProportional oTrajController_P;
 	trajectory_follower::chainedProportionalIntegral oTrajController_PI;
 
@@ -41,8 +41,6 @@ namespace trajectory_controller {
 	double velLeftWheel, velRightWheel;
 
     protected:
-   	
-       		
     
 
     public:

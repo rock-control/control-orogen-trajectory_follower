@@ -48,13 +48,13 @@ bool Task::startHook()
     l1 = 0.00;  // 10 cm infront of CoG
     
     double K0 = 5.0;
-    oTrajController_NO.setConstants( l1, K0, ROBOT.WIDTH, ROBOT.WHEEL_RADIUS);
+    oTrajController_nO.setConstants( l1, K0, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
 
     double K2_P=150.0, K3_P=150.0;
-    oTrajController_P.setConstants( K2_P, K3_P, ROBOT.WIDTH, ROBOT.WHEEL_RADIUS);
+    oTrajController_P.setConstants( K2_P, K3_P, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
 
     double K0_PI=0.0, K2_PI=150.0, K3_PI=150.0;
-    oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, ROBOT.WIDTH, ROBOT.WHEEL_RADIUS, SAMPLING_TIME);
+    oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
     
     velLeftWheel = 0.0;
     velRightWheel = 0.0;
@@ -74,9 +74,9 @@ double heading(Eigen::Quaterniond q)
 
 void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 {
+    base::samples::RigidBodyState rbs;
     wrappers::samples::RigidBodyState pose;
     std::vector<wrappers::Waypoint> trajectory;
-    base::samples::RigidBodyState rbs = pose;	
 
     if(!bFirstPose)
     {
@@ -109,16 +109,15 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	rbs = pose;
 	if ( para < oCurve.getEndParam() )
 	{
-
 	    rbs.position.x() = rbs.position.x() + l1 * cos(heading(rbs.orientation));
 	    rbs.position.y() = rbs.position.y() + l1 * sin(heading(rbs.orientation));
 
 	    error = oCurve.poseError(rbs.position, heading(rbs.orientation), para, SEARCH_DIST);
 	    para  = error(2);
 	    
-	    motionCmd = oTrajController_NO.update(forwardVelocity, error(0), error(1)); 
-	    velRightWheel = oTrajController_NO.get_vel_right();
-	    velLeftWheel = oTrajController_NO.get_vel_left();
+	    motionCmd = oTrajController_nO.update(forwardVelocity, error(0), error(1)); 
+	    velRightWheel = oTrajController_nO.get_vel_right();
+	    velLeftWheel = oTrajController_nO.get_vel_left();
 
 //	    motionCmd = oTrajController_P->update(forwardVelocity, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
 //	    velRightWheel = oTrajController_P.get_vel_right();
