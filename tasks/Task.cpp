@@ -4,22 +4,12 @@
 
 #include <iostream>
 #include <math.h>
-#include <HBridge.hpp>
 
 #define SAMPLING_TIME 0.005
-
-
-// already defines in drivers/hbridge/HBridge.hpp
-#define FL MOTOR_FRONT_LEFT // Front Left
-#define FR MOTOR_FRONT_RIGHT  // Front Right
-#define RL MOTOR_REAR_LEFT  // Rear Left
-#define RR MOTOR_REAR_RIGHT  // Rear Right
-
 #define SEARCH_DIST 0.05  // Distance that will be searched along the curve for the closest point
 
 using namespace trajectory_controller;
 using namespace base::geometry;
-using namespace hbridge;
 using namespace Eigen;
 
 RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
@@ -148,10 +138,11 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 
 	refVel.mode[0] = refVel.mode[1] =
 	    refVel.mode[2] = refVel.mode[3] = controldev::MODE_SPEED;
-	refVel.target[FL] = velLeftWheel;
-	refVel.target[RL] = velLeftWheel;
-	refVel.target[FR] = velRightWheel;
-	refVel.target[RR] = velRightWheel;
+
+	refVel.target[ROBOT.REAR_LEFT]   = velLeftWheel;
+	refVel.target[ROBOT.FRONT_LEFT]  = velLeftWheel;
+	refVel.target[ROBOT.FRONT_RIGHT] = velRightWheel;
+	refVel.target[ROBOT.REAR_RIGHT]  = velRightWheel;
 	refVel.sync = false;
 
 	if(_motionCommand.connected())
