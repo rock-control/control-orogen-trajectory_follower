@@ -40,22 +40,23 @@ bool Task::startHook()
     double K0 = 5.0;
     oTrajController_nO.setConstants( l1, K0, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
 
-    double K2_P=150.0, K3_P=150.0;
-    oTrajController_P.setConstants( K2_P, K3_P, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
-
-    double K0_PI=0.0, K2_PI=150.0, K3_PI=150.0;
-    oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
+//    double K2_P=150.0, K3_P=150.0;
+//    oTrajController_P.setConstants( K2_P, K3_P, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
+//
+//    double K0_PI=0.0, K2_PI=150.0, K3_PI=150.0;
+//    oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
     
     velLeftWheel = 0.0;
     velRightWheel = 0.0;
 
     bCurveGenerated = false;
     bFirstPose = false;
+    newCurve = false;
     return true;
 }
 
 
-// QUICK FIX
+// QUICK FIX...  extracting heading from quaternion
 double heading(Eigen::Quaterniond q)
 {
     return atan( 2*(q.x()*q.w()+q.y()*q.z())/(1-2*(q.z()*q.z()+q.w()*q.w())) );
@@ -104,7 +105,28 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 
 	    error = oCurve.poseError(rbs.position, heading(rbs.orientation), para, SEARCH_DIST);
 	    para  = error(2);
-	    
+
+	    if(newCurve)
+	    {
+	    	if(!oTrajController_nO.checkInitialStability(error(0), error(1), oCurve.getCurvatureMax()))	    
+	    	{
+		    std::cout << "Trajectory controller: no orientation ...failed Initial stability test";
+		    return;
+		}
+	    	
+//		if(!oTrajController_P.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
+//	    	{
+//		    std::cout << "Trajectory controller: Proportional ...failed Initial stability test";
+//		    return;
+//		}
+//
+//	    	if(!oTrajController_PI.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
+//	    	{
+//		    std::cout << "Trajectory controller: Proposrtional integral ...failed Initial stability test";
+//		    return;
+//		}
+	        newCurve = false;	
+	    }
 	    motionCmd = oTrajController_nO.update(forwardVelocity, error(0), error(1)); 
 	    velRightWheel = oTrajController_nO.get_vel_right();
 	    velLeftWheel = oTrajController_nO.get_vel_left();

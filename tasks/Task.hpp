@@ -27,6 +27,7 @@ namespace trajectory_controller {
 	base::geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
 	bool bFirstPose;    // check if the starting pose is added to the trajectory
+	bool newCurve; 
 
 	Eigen::Vector3d error;
 	double para;
