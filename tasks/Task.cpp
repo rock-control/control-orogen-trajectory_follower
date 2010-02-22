@@ -34,8 +34,8 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
 
 bool Task::startHook()
 {
-    forwardVelocity = 0.05;  // forward velocity
-    l1 = 0.00;  // 10 cm infront of CoG
+    forwardVelocity = 0.08;  // forward velocity
+    l1 = 0.03;  // infront of CoG
     
     double K0 = 5.0;
     oTrajController_nO.setConstants( l1, K0, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
@@ -53,10 +53,20 @@ bool Task::startHook()
 }
 
 
-// QUICK FIX...  extracting heading from quaternion
 double heading(Eigen::Quaterniond q)
 {
-    return atan( 2*(q.x()*q.w()+q.y()*q.z())/(1-2*(q.z()*q.z()+q.w()*q.w())) );
+    double test = q.x()*q.y() + q.z()*q.w();
+    if (test > 0.499) // singularity at north pole
+    { 
+	return 2 * atan2(q.x(),q.w());
+    }
+    if (test < -0.499)  // singularity at south pole
+    {
+	return -2 * atan2(q.x(),q.w());
+    }
+    double sqy = q.y()*q.y();
+    double sqz = q.z()*q.z();
+    return atan2(2*q.y()*q.w()-2*q.x()*q.z() , 1 - 2*sqy - 2*sqz);
 }
 
 
