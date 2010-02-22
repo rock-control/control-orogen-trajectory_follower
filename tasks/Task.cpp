@@ -78,18 +78,16 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	    return;
     }
 
-    if(isPortUpdated(_trajectory)) 
+    if(_trajectory.read(trajectory)) 
     {
-	if(_trajectory.read(trajectory)) 
-	{
-	    for(std::vector<wrappers::Waypoint>::iterator it = trajectory.begin(); it != trajectory.end(); it++) 
-	    {
-		oCurve.addPoint(it->position);
-	    }
-	    oCurve.update();	    
-	    bCurveGenerated = true; 
-	    para = oCurve.getStartParam();
-	}
+        oCurve.clear();
+        for(std::vector<wrappers::Waypoint>::iterator it = trajectory.begin(); it != trajectory.end(); it++) 
+        {
+            oCurve.addPoint(it->position);
+        }
+        oCurve.update();	    
+        bCurveGenerated = true; 
+        para = oCurve.getStartParam();
     }
 
     if(_pose.read(pose) && bCurveGenerated) 
