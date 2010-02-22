@@ -39,7 +39,6 @@ namespace trajectory_controller {
 	trajectory_follower::chainedProportionalIntegral oTrajController_PI;
 
 	Eigen::Vector2d motionCmd;
-	double velLeftWheel, velRightWheel;
 
     protected:
     

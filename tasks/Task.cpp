@@ -46,9 +46,6 @@ bool Task::startHook()
 //    double K0_PI=0.0, K2_PI=150.0, K3_PI=150.0;
 //    oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
     
-    velLeftWheel = 0.0;
-    velRightWheel = 0.0;
-
     bCurveGenerated = false;
     bFirstPose = false;
     newCurve = false;
@@ -128,16 +125,9 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	        newCurve = false;	
 	    }
 	    motionCmd = oTrajController_nO.update(forwardVelocity, error(0), error(1)); 
-	    velRightWheel = oTrajController_nO.get_vel_right();
-	    velLeftWheel = oTrajController_nO.get_vel_left();
 
 //	    motionCmd = oTrajController_P->update(forwardVelocity, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
-//	    velRightWheel = oTrajController_P.get_vel_right();
-//	    velLeftWheel = oTrajController_P.get_vel_left();
-//
 //	    motionCmd = oTrajController_PI->update(forwardVelocity, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
-//	    velRightWheel = oTrajController_PI.get_vel_right();
-//	    velLeftWheel = oTrajController_PI.get_vel_left();
 	    
 	    wrappers::Waypoint wp;	   
 	    wp.position = oCurve.getPoint(para);
@@ -148,29 +138,12 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	{
 	    motionCmd(0) = 0.0; 
 	    motionCmd(1) = 0.0; 
-	    velRightWheel = 0.0;
-	    velLeftWheel = 0.0;
 	}	    
 
 	controldev::MotionCommand mc;
 	mc.translation = motionCmd(0);
 	mc.rotation    = motionCmd(1);
-
-	controldev::FourWheelCommand refVel;
-
-	refVel.mode[0] = refVel.mode[1] =
-	    refVel.mode[2] = refVel.mode[3] = controldev::MODE_SPEED;
-
-	refVel.target[ROBOT.REAR_LEFT]   = velLeftWheel;
-	refVel.target[ROBOT.FRONT_LEFT]  = velLeftWheel;
-	refVel.target[ROBOT.FRONT_RIGHT] = velRightWheel;
-	refVel.target[ROBOT.REAR_RIGHT]  = velRightWheel;
-	refVel.sync = false;
-
-	if(_motionCommand.connected())
-	    _motionCommand.write(mc);
-	else
-	    _four_wheel_command.write(refVel);
+        _motion_command.write(mc);
     }
 }
 

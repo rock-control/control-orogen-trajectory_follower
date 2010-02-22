@@ -14,11 +14,8 @@ task_context "Task" do
     input_port("pose", "wrappers/samples/RigidBodyState").
         doc "Position and orientation of the Robot"
 
-    output_port("motionCommand", "controldev/MotionCommand").
+    output_port("motion_command", "controldev/MotionCommand").
         doc "Drive command that should steer the robot to the target Pose"
-
-    output_port('four_wheel_command', 'controldev::FourWheelCommand').
-        doc('Reference velocity for PIV controller')
 
     output_port("currentCurvePoint", "wrappers/Waypoint")
 
