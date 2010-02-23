@@ -8,6 +8,33 @@ using_library "trajectory_follower"
 using_library "base-lib"
 
 task_context "Task" do
+    property("controllerType", "int").
+            doc "selects tchainedProportionalIntegral controller to be used. Values: 0: No orientation, 1: chainedProportional, 2: chainedProportionalIntegral"
+
+    property("forwardVelocity", "double").
+            doc "forward speed of the robot"
+
+    property("forwardLength", "double").
+            doc "moving the pose estimation point forward for no orientation controller"
+
+    property("K0_nO", "double").
+            doc "K0 gain for no orientation controller"
+
+    property("K2_P", "double").
+            doc "K2 gain for P controller"
+
+    property("K3_P", "double").
+            doc "K3 gain for P controller"
+
+    property("K0_PI", "double").
+            doc "K0 gain for PI controller"
+
+    property("K2_PI", "double").
+            doc "K2 gain for PI controller"
+
+    property("K3_PI", "double").
+            doc "K3 gain for PI controller"
+
     input_port("trajectory", "/std/vector</wrappers/Waypoint>").
         doc "Trajectory the robot should follow"
 

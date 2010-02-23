@@ -19,6 +19,16 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
     Task::Task(std::string const& name)
 : TaskBase(name)
 {
+    _controllerType.set(0);
+    _forwardVelocity.set(0.5);
+    _forwardLength.set(0.1);
+
+    _K0_nO.set(5.0);
+    _K2_P.set(150.0);
+    _K3_P.set(150.0);
+    _K0_PI.set(0.0);
+    _K2_PI.set(150.0);
+    _K3_PI.set(150.0);
 }
 
 
@@ -34,21 +44,13 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
 
 bool Task::startHook()
 {
-    forwardVelocity = 0.08;  // forward velocity
-    l1 = 0.03;  // infront of CoG
-    
-    double K0 = 5.0;
-    oTrajController_nO.setConstants( l1, K0, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
-
-//    double K2_P=150.0, K3_P=150.0;
-//    oTrajController_P.setConstants( K2_P, K3_P, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
-//
-//    double K0_PI=0.0, K2_PI=150.0, K3_PI=150.0;
-//    oTrajController_PI.setConstants( K0_PI, K2_PI, K3_PI, ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
+    oTrajController_nO.setConstants( _forwardLength.get(), _K0_nO.get(), ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
+    oTrajController_P.setConstants( _K2_P.get(), _K3_P.get(), ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
+    oTrajController_PI.setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
     
     bCurveGenerated = false;
     bFirstPose = false;
-    newCurve = false;
+    bInitStable = false;
     return true;
 }
 
@@ -105,37 +107,48 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	rbs = pose;
 	if ( para < oCurve.getEndParam() )
 	{
-	    rbs.position.x() = rbs.position.x() + l1 * cos(heading(rbs.orientation));
-	    rbs.position.y() = rbs.position.y() + l1 * sin(heading(rbs.orientation));
+	    rbs.position.x() = rbs.position.x() + _forwardLength.get() * cos(heading(rbs.orientation));
+	    rbs.position.y() = rbs.position.y() + _forwardLength.get() * sin(heading(rbs.orientation));
 
 	    error = oCurve.poseError(rbs.position, heading(rbs.orientation), para, SEARCH_DIST);
 	    para  = error(2);
 
-	    if(newCurve)
+	    if(!bInitStable)
 	    {
-	    	if(!oTrajController_nO.checkInitialStability(error(0), error(1), oCurve.getCurvatureMax()))	    
-	    	{
-		    std::cout << "Trajectory controller: no orientation ...failed Initial stability test";
-		    return;
+		if(_controllerType.get() == 0)
+		{
+		    if(!oTrajController_nO.checkInitialStability(error(0), error(1), oCurve.getCurvatureMax()))	    
+		    {
+			std::cout << "Trajectory controller: no orientation ...failed Initial stability test";
+			return;
+		    }
 		}
-	    	
-//		if(!oTrajController_P.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
-//	    	{
-//		    std::cout << "Trajectory controller: Proportional ...failed Initial stability test";
-//		    return;
-//		}
-//
-//	    	if(!oTrajController_PI.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
-//	    	{
-//		    std::cout << "Trajectory controller: Proposrtional integral ...failed Initial stability test";
-//		    return;
-//		}
-	        newCurve = false;	
+		else if(_controllerType.get() == 1)
+		{
+		    if(!oTrajController_P.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
+		    {
+			std::cout << "Trajectory controller: Proportional ...failed Initial stability test";
+			return;
+		    }
+		}	
+		else if(_controllerType.get() == 2)
+		{
+		    if(!oTrajController_PI.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
+		    {
+			std::cout << "Trajectory controller: Proposrtional integral ...failed Initial stability test";
+			return;
+		    }	
+		}
+		bInitStable = true;	
 	    }
-	    motionCmd = oTrajController_nO.update(forwardVelocity, error(0), error(1)); 
 
-//	    motionCmd = oTrajController_P->update(forwardVelocity, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
-//	    motionCmd = oTrajController_PI->update(forwardVelocity, error(0), error(1), oCurve.getCurvature(para), oCurve.getVoC(para));
+
+	    if(_controllerType.get() == 0)
+		motionCmd = oTrajController_nO.update(_forwardVelocity.get(), error(0), error(1)); 
+	    else if(_controllerType.get() == 1)
+		motionCmd = oTrajController_P.update(_forwardVelocity.get(), error(0), error(1), oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
+	    else if(_controllerType.get() == 2)
+		motionCmd = oTrajController_PI.update(_forwardVelocity.get(), error(0), error(1), oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
 	    
 	    wrappers::Waypoint wp;	   
 	    wp.position = oCurve.getPoint(para);

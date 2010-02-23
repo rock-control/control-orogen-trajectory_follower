@@ -27,13 +27,11 @@ namespace trajectory_controller {
 	base::geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
 	bool bFirstPose;    // check if the starting pose is added to the trajectory
-	bool newCurve; 
+	bool bInitStable; 
 
 	Eigen::Vector3d error;
 	double para;
 
-	double forwardVelocity;
-        double l1;  // Distance infront of CoG for noOrientation controlle for noOrientation controllerr
 	trajectory_follower::noOrientation oTrajController_nO;
 	trajectory_follower::chainedProportional oTrajController_P;
 	trajectory_follower::chainedProportionalIntegral oTrajController_PI;
