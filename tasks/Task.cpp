@@ -18,6 +18,7 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
 
     Task::Task(std::string const& name)
 : TaskBase(name)
+    , oCurve(0.001, 3)
 {
     _controllerType.set(0);
     _forwardVelocity.set(0.5);
@@ -135,7 +136,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		{
 		    if(!oTrajController_PI.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
 		    {
-			std::cout << "Trajectory controller: Proposrtional integral ...failed Initial stability test";
+			std::cout << "Trajectory controller: Proportional integral ...failed Initial stability test";
 			return;
 		    }	
 		}

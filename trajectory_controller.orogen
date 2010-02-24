@@ -9,7 +9,7 @@ using_library "base-lib"
 
 task_context "Task" do
     property("controllerType", "int").
-            doc "selects tchainedProportionalIntegral controller to be used. Values: 0: No orientation, 1: chainedProportional, 2: chainedProportionalIntegral"
+            doc "selects chainedProportionalIntegral controller to be used. Values: 0: No orientation, 1: chainedProportional, 2: chainedProportionalIntegral"
 
     property("forwardVelocity", "double").
             doc "forward speed of the robot"
