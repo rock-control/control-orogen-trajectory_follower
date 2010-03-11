@@ -26,11 +26,14 @@ namespace trajectory_controller {
 	base::robot::FourWheelGeom ROBOT;
 	base::geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
-	bool bFirstPose;    // check if the starting pose is added to the trajectory
+	bool bFirstPoseAdded;    // check if the starting pose is added to the trajectory
 	bool bInitStable; 
 
-	Eigen::Vector3d error;
 	double para;
+
+    	TrajError error;
+	CurvePoint curvePoint;
+	RobotPose pose;
 
 	trajectory_follower::noOrientation oTrajController_nO;
 	trajectory_follower::chainedProportional oTrajController_P;

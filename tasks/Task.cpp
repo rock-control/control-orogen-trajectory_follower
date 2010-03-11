@@ -50,7 +50,7 @@ bool Task::startHook()
     oTrajController_PI.setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
     
     bCurveGenerated = false;
-    bFirstPose = false;
+    bFirstPoseAdded = false;
     bInitStable = false;
     return true;
 }
@@ -75,17 +75,15 @@ double heading(Eigen::Quaterniond q)
 
 void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 {
-    base::samples::RigidBodyState rbs;
-    wrappers::samples::RigidBodyState pose;
+    wrappers::samples::RigidBodyState rbpose;
     std::vector<wrappers::Waypoint> trajectory;
 
-    if(!bFirstPose)
+    if(!bFirstPoseAdded)
     {
-	if(_pose.read(pose))
+	if(_pose.read(rbpose))
 	{
-	    rbs = pose;
-	    oCurve.addPoint(rbs.position);
-	    bFirstPose = true;
+	    oCurve.addPoint(rbpose.position);
+	    bFirstPoseAdded = true;
 	}
 	else 
 	    return;
@@ -103,22 +101,34 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
         para = oCurve.getStartParam();
     }
 
-    if(_pose.read(pose) && bCurveGenerated) 
+    if(_pose.read(rbpose) && bCurveGenerated) 
     {
-	rbs = pose;
+	pose.position = rbpose.position;
+	pose.heading  = heading(rbpose.orientation);
 	if ( para < oCurve.getEndParam() )
 	{
-	    rbs.position.x() = rbs.position.x() + _forwardLength.get() * cos(heading(rbs.orientation));
-	    rbs.position.y() = rbs.position.y() + _forwardLength.get() * sin(heading(rbs.orientation));
+	    if(_controllerType.get() == 0)
+	    {
+		pose.position.x() = pose.position.x() + _forwardLength.get() * cos(pose.heading);
+		pose.position.y() = pose.position.y() + _forwardLength.get() * sin(pose.heading);
+	    }
 
-	    error = oCurve.poseError(rbs.position, heading(rbs.orientation), para, SEARCH_DIST);
-	    para  = error(2);
-
+	    Eigen::Vector3d vError = oCurve.poseError(pose.position, pose.heading, para, SEARCH_DIST);
+	    para  = vError(2);
+	   
+	    error.d 	  = vError(0);
+	    error.theta_e = vError(1);
+	    error.param   = vError(2);
+	    
+ 	    curvePoint.pose.position 	= oCurve.getPoint(para); 	    
+	    curvePoint.pose.heading  	= oCurve.getHeading(para);
+	    curvePoint.param 		= para;
+	
 	    if(!bInitStable)
 	    {
 		if(_controllerType.get() == 0)
 		{
-		    if(!oTrajController_nO.checkInitialStability(error(0), error(1), oCurve.getCurvatureMax()))	    
+		    if(!oTrajController_nO.checkInitialStability(error.d, error.theta_e, oCurve.getCurvatureMax()))	    
 		    {
 			std::cout << "Trajectory controller: no orientation ...failed Initial stability test";
 			return;
@@ -126,7 +136,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		}
 		else if(_controllerType.get() == 1)
 		{
-		    if(!oTrajController_P.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
+		    if(!oTrajController_P.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
 		    {
 			std::cout << "Trajectory controller: Proportional ...failed Initial stability test";
 			return;
@@ -134,7 +144,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		}	
 		else if(_controllerType.get() == 2)
 		{
-		    if(!oTrajController_PI.checkInitialStability(error(0), error(1), oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
+		    if(!oTrajController_PI.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
 		    {
 			std::cout << "Trajectory controller: Proportional integral ...failed Initial stability test";
 			return;
@@ -143,18 +153,12 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		bInitStable = true;	
 	    }
 
-
 	    if(_controllerType.get() == 0)
-		motionCmd = oTrajController_nO.update(_forwardVelocity.get(), error(0), error(1)); 
+		motionCmd = oTrajController_nO.update(_forwardVelocity.get(), error.d, error.theta_e); 
 	    else if(_controllerType.get() == 1)
-		motionCmd = oTrajController_P.update(_forwardVelocity.get(), error(0), error(1), oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
+		motionCmd = oTrajController_P.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
 	    else if(_controllerType.get() == 2)
-		motionCmd = oTrajController_PI.update(_forwardVelocity.get(), error(0), error(1), oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
-	    
-	    wrappers::Waypoint wp;	   
-	    wp.position = oCurve.getPoint(para);
-	    wp.heading  = oCurve.getHeading(para);
-	    _currentCurvePoint.write(wp);
+		motionCmd = oTrajController_PI.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
 	}
 	else 
 	{
@@ -165,7 +169,11 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	controldev::MotionCommand mc;
 	mc.translation = motionCmd(0);
 	mc.rotation    = motionCmd(1);
+
         _motion_command.write(mc);
+	_currentCurvePoint.write(curvePoint);
+	_poseError.write(error);
+	_currentPose.write(pose);
     }
 }
 
