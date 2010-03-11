@@ -7,6 +7,8 @@ import_types_from "controldev"
 using_library "trajectory_follower"
 using_library "base-lib"
 
+import_types_from "TrajectoryFollowerTypes.hpp"
+
 task_context "Task" do
     property("controllerType", "int").
             doc "selects chainedProportionalIntegral controller to be used. Values: 0: No orientation, 1: chainedProportional, 2: chainedProportionalIntegral"
@@ -44,7 +46,14 @@ task_context "Task" do
     output_port("motion_command", "controldev/MotionCommand").
         doc "Drive command that should steer the robot to the target Pose"
 
-    output_port("currentCurvePoint", "wrappers/Waypoint")
+    output_port("currentCurvePoint", "trajectory_controller/CurvePoint").
+    	doc "Corresponding point on the reference curve"
+    
+    output_port("currentPose", "trajectory_controller/RobotPose").
+    	doc "Current pose of the robot"
+
+    output_port("poseError", "trajectory_controller/TrajError").
+    	doc "Pose error calculated by NURBSCurve3D"
 
     needs_configuration
     port_driven
