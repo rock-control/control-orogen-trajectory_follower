@@ -131,7 +131,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		    if(!oTrajController_nO.checkInitialStability(error.d, error.theta_e, oCurve.getCurvatureMax()))	    
 		    {
 			std::cout << "Trajectory controller: no orientation ...failed Initial stability test";
-			return;
+//			return;
 		    }
 		}
 		else if(_controllerType.get() == 1)
@@ -139,7 +139,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		    if(!oTrajController_P.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
 		    {
 			std::cout << "Trajectory controller: Proportional ...failed Initial stability test";
-			return;
+//			return;
 		    }
 		}	
 		else if(_controllerType.get() == 2)
@@ -147,7 +147,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		    if(!oTrajController_PI.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
 		    {
 			std::cout << "Trajectory controller: Proportional integral ...failed Initial stability test";
-			return;
+//			return;
 		    }	
 		}
 		bInitStable = true;	
