@@ -69,7 +69,7 @@ double heading(Eigen::Quaterniond q)
     }
     double sqy = q.y()*q.y();
     double sqz = q.z()*q.z();
-    return atan2(2*q.y()*q.w()-2*q.x()*q.z() , 1 - 2*sqy - 2*sqz);
+    return atan2(2*q.x()*q.y()+2*q.w()*q.z() , 1 - 2*sqy - 2*sqz);
 }
 
 
