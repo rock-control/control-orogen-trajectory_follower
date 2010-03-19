@@ -58,18 +58,8 @@ bool Task::startHook()
 
 double heading(Eigen::Quaterniond q)
 {
-    double test = q.x()*q.y() + q.z()*q.w();
-    if (test > 0.499) // singularity at north pole
-    { 
-	return 2 * atan2(q.x(),q.w());
-    }
-    if (test < -0.499)  // singularity at south pole
-    {
-	return -2 * atan2(q.x(),q.w());
-    }
-    double sqy = q.y()*q.y();
-    double sqz = q.z()*q.z();
-    return atan2(2*q.x()*q.y()+2*q.w()*q.z() , 1 - 2*sqy - 2*sqz);
+    // Hope this works ... needs a better fix
+    return atan2(2*q.x()*q.y()+2*q.w()*q.z() , 1-2*(q.y()*q.y() + q.z()*q.z()));
 }
 
 
