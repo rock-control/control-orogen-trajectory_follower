@@ -26,7 +26,7 @@ namespace trajectory_controller {
 	base::robot::FourWheelGeom ROBOT;
 	base::geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
-	bool bFirstPoseAdded;    // check if the starting pose is added to the trajectory
+	bool bFoundClosestPoint;    // check if the starting pose is added to the trajectory
 	bool bInitStable; 
 
 	double para;

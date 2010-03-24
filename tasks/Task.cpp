@@ -50,7 +50,7 @@ bool Task::startHook()
     oTrajController_PI.setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
     
     bCurveGenerated = false;
-    bFirstPoseAdded = false;
+    bFoundClosestPoint = false;
     bInitStable = false;
     return true;
 }
@@ -68,17 +68,6 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
     wrappers::samples::RigidBodyState rbpose;
     std::vector<wrappers::Waypoint> trajectory;
 
-    if(!bFirstPoseAdded)
-    {
-	if(_pose.read(rbpose))
-	{
-	    oCurve.addPoint(rbpose.position);
-	    bFirstPoseAdded = true;
-	}
-	else 
-	    return;
-    }
-
     if(_trajectory.read(trajectory)) 
     {
         oCurve.clear();
@@ -88,7 +77,19 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
         }
         oCurve.update();	    
         bCurveGenerated = true; 
-        para = oCurve.getStartParam();
+//        para = oCurve.getStartParam();
+    }
+
+    if(bCurveGenerated && !bFoundClosestPoint)
+    {
+	if(_pose.read(rbpose))
+	{
+	    pose.position = rbpose.position;
+	    para = oCurve.findOneClosestPoint(rbpose.position);
+	    bFoundClosestPoint = true;
+	}
+	else 
+	    return;
     }
 
     if(_pose.read(rbpose) && bCurveGenerated) 
