@@ -70,6 +70,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 
     if(_trajectory.read(trajectory)) 
     {
+	oCurve.clear();
         for(std::vector<wrappers::Waypoint>::iterator it = trajectory.begin(); it != trajectory.end(); it++) 
         {
             oCurve.addPoint(it->position);
