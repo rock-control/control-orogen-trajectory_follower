@@ -38,7 +38,8 @@ task_context "Task" do
             doc "K3 gain for PI controller"
 
     input_port("trajectory", "/std/vector</wrappers/Waypoint>").
-        doc "Trajectory the robot should follow"
+        doc("Trajectory the robot should follow").
+        needs_buffered_connection
 
     input_port("pose", "wrappers/samples/RigidBodyState").
         doc "Position and orientation of the Robot"
