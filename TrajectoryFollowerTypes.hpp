@@ -7,9 +7,10 @@ namespace trajectory_controller
 {
     struct TrajError
     {
+	double param;		// Curve parameter
 	double d;      		// Distance from curve point
         double theta_e; 	// Heading error
-	double param;		// Curve parameter
+
     }; 
 
     struct RobotPose
