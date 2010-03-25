@@ -63,6 +63,17 @@ double heading(Eigen::Quaterniond q)
 }
 
 
+double angleLimit(double angle)
+{
+    if(angle > M_PI)
+	return angle - 2*M_PI;
+    else if (angle < -M_PI)
+	return angle + 2*M_PI;
+    else
+     	return angle;
+}
+
+
 void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 {
     wrappers::samples::RigidBodyState rbpose;
@@ -108,7 +119,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	    para  = vError(2);
 	   
 	    error.d 	  = vError(0);
-	    error.theta_e = vError(1);
+	    error.theta_e = angleLimit(vError(1) + M_PI_2);
 	    error.param   = vError(2);
 	    
  	    curvePoint.pose.position 	= oCurve.getPoint(para); 	    
