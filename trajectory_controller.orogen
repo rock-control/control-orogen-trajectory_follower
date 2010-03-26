@@ -18,6 +18,9 @@ task_context "Task" do
 
     property("forwardLength", "double").
             doc "moving the pose estimation point forward for no orientation controller"
+    
+    property("gpsCenterofRotationOffset", "double").
+            doc "Offset between GPS (w.r.t which Pose Estimator works) and approximated center of rotation"
 
     property("K0_nO", "double").
             doc "K0 gain for no orientation controller"
