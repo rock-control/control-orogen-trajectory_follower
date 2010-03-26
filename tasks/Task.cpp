@@ -21,8 +21,8 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
     , oCurve(0.001, 3)
 {
     _controllerType.set(0);
-    _forwardVelocity.set(0.5);
-    _forwardLength.set(0.1);
+    _forwardVelocity.set(0.2);
+    _forwardLength.set(0.51);
 
     _K0_nO.set(5.0);
     _K2_P.set(150.0);
@@ -111,8 +111,8 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	{
 	    if(_controllerType.get() == 0)
 	    {
-		pose.position.x() = pose.position.x() + _forwardLength.get() * cos(pose.heading);
-		pose.position.y() = pose.position.y() + _forwardLength.get() * sin(pose.heading);
+		pose.position.x() = pose.position.x() - _forwardLength.get() * sin(pose.heading);
+		pose.position.y() = pose.position.y() + _forwardLength.get() * cos(pose.heading);
 	    }
 
 	    Eigen::Vector3d vError = oCurve.poseError(pose.position, pose.heading, para, SEARCH_DIST);
