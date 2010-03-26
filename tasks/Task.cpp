@@ -171,6 +171,10 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	controldev::MotionCommand mc;
 	mc.translation = motionCmd(0);
 	mc.rotation    = motionCmd(1);
+        if (mc.rotation < -1)
+            mc.rotation = -1;
+        else if (mc.rotation > 1)
+            mc.rotation = 1;
 
         _motion_command.write(mc);
 	_currentCurvePoint.write(curvePoint);
