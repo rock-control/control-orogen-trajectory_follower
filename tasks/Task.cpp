@@ -6,7 +6,7 @@
 #include <math.h>
 
 #define SAMPLING_TIME 0.01
-#define SEARCH_DIST 0.05  // Distance that will be searched along the curve for the closest point
+#define SEARCH_DIST   0.5  // Distance that will be searched along the curve for the closest point
 
 using namespace trajectory_controller;
 using namespace base::geometry;
