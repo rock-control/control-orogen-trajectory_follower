@@ -10,7 +10,6 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry> 
-#include <base/Robot.hpp>
 
 namespace RTT
 {
@@ -23,7 +22,6 @@ namespace trajectory_controller {
     {
 	friend class TaskBase;
 
-	base::robot::FourWheelGeom ROBOT;
 	base::geometry::NURBSCurve3D oCurve;
 	bool bCurveGenerated;
 	bool bFoundClosestPoint;    // check if the starting pose is added to the trajectory

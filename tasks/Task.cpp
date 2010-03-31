@@ -46,9 +46,9 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
 
 bool Task::startHook()
 {
-    oTrajController_nO.setConstants( _forwardLength.get(), _K0_nO.get(), ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
-    oTrajController_P.setConstants( _K2_P.get(), _K3_P.get(), ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF);
-    oTrajController_PI.setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), ROBOT.TRACK, ROBOT.WHEEL_RADIUS_EFF, SAMPLING_TIME);
+    oTrajController_nO.setConstants( _forwardLength.get(), _K0_nO.get() );
+    oTrajController_P.setConstants( _K2_P.get(), _K3_P.get() );
+    oTrajController_PI.setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), SAMPLING_TIME);
     
     bCurveGenerated = false;
     bFoundClosestPoint = false;
@@ -89,7 +89,6 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
         }
         oCurve.update();	    
         bCurveGenerated = true; 
-//        para = oCurve.getStartParam();
     }
 
     if(bCurveGenerated && !bFoundClosestPoint)
