@@ -16,8 +16,8 @@ RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
 { return dynamic_cast< RTT::NonPeriodicActivity* >(getActivity().get()); }
 
 
-    Task::Task(std::string const& name)
-: TaskBase(name)
+Task::Task(std::string const& name)
+    : TaskBase(name)
     , oCurve(0.001, 3)
 {
     _controllerType.set(0);
@@ -82,12 +82,13 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 
     if(_trajectory.read(trajectory)) 
     {
-	oCurve.clear();
+        std::vector<Eigen::Vector3d> points;
+
         for(std::vector<wrappers::Waypoint>::iterator it = trajectory.begin(); it != trajectory.end(); it++) 
         {
-            oCurve.addPoint(it->position);
+            points.push_back(it->position);
         }
-        oCurve.update();	    
+        oCurve.interpolate(points);
         bCurveGenerated = true; 
     }
 
@@ -115,7 +116,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		pose.position.y() = pose.position.y() + (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * cos(pose.heading);
 	    }
 
-	    Eigen::Vector3d vError = oCurve.poseError(pose.position, pose.heading, para, SEARCH_DIST);
+	    Eigen::Vector3d vError = oCurve.poseError(pose.position, pose.heading, para);
 	    para  = vError(2);
 	   
 	    error.d 	  = vError(0);

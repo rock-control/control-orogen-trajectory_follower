@@ -3,7 +3,7 @@
 
 #include "trajectory_controller/TaskBase.hpp"
  
-#include "base/geometry/NURBSCurve3D.h"
+#include <base/geometry/spline.h>
 #include "TrajectoryControllerNoOrientation.hpp" 
 #include "TrajectoryControllerP.hpp" 
 #include "TrajectoryControllerPI.hpp" 
@@ -22,7 +22,7 @@ namespace trajectory_controller {
     {
 	friend class TaskBase;
 
-	base::geometry::NURBSCurve3D oCurve;
+	base::geometry::Spline<3> oCurve;
 	bool bCurveGenerated;
 	bool bFoundClosestPoint;    // check if the starting pose is added to the trajectory
 	bool bInitStable; 
