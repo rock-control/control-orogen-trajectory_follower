@@ -8,6 +8,7 @@ using_library "trajectory_follower"
 using_library "base-lib"
 
 import_types_from "TrajectoryFollowerTypes.hpp"
+import_types_from "base/motion_command.h"
 
 task_context "Task" do
     property("controllerType", "int").
@@ -47,7 +48,7 @@ task_context "Task" do
     input_port("pose", "wrappers/samples/RigidBodyState").
         doc "Position and orientation of the Robot"
 
-    output_port("motion_command", "controldev/MotionCommand").
+    output_port("motion_command", "base/MotionCommand2D").
         doc "Drive command that should steer the robot to the target Pose"
 
     output_port("currentCurvePoint", "trajectory_controller/CurvePoint").

@@ -169,7 +169,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	    motionCmd(1) = 0.0; 
 	}	    
 
-	controldev::MotionCommand mc;
+	base::MotionCommand2D mc;
 	mc.translation = motionCmd(0);
 	mc.rotation    = motionCmd(1);
 
