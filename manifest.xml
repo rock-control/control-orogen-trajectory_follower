@@ -2,7 +2,6 @@
 <package>
   <depend package="base"/>
   <depend package="control/trajectory_follower"/>
-  <depend package="modules/controldev"/>
   <depend package="orocos/base"/>
   <depend package="orocos/orogen"/>
   <depend package="orocos/rtt"/>

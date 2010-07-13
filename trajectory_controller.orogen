@@ -2,7 +2,6 @@ name "trajectory_controller"
 version "0.1"
 
 import_types_from "base"
-import_types_from "controldev"
 
 using_library "trajectory_follower"
 using_library "base-lib"
