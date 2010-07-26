@@ -115,6 +115,11 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 		pose.position.x() = pose.position.x() - (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * sin(pose.heading);
 		pose.position.y() = pose.position.y() + (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * cos(pose.heading);
 	    }
+            else
+	    {
+		pose.position.x() = pose.position.x() - (_gpsCenterofRotationOffset.get()) * sin(pose.heading);
+		pose.position.y() = pose.position.y() + (_gpsCenterofRotationOffset.get()) * cos(pose.heading);
+	    }
 
 	    Eigen::Vector3d vError = oCurve.poseError(pose.position, pose.heading, para);
 	    para  = vError(2);
