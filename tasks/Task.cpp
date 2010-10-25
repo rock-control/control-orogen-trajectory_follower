@@ -88,6 +88,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
         {
             points.push_back(it->position);
         }
+	bFoundClosestPoint = false;
         oCurve.interpolate(points);
         bCurveGenerated = true; 
     }
