@@ -3,7 +3,7 @@
 
 #include <base/wrappers/eigen.h>
 
-namespace trajectory_controller
+namespace trajectory_follower
 {
     struct TrajError
     {

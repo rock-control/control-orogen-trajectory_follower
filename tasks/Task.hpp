@@ -1,7 +1,7 @@
-#ifndef TRAJECTORY_CONTROLLER_TASK_TASK_HPP
-#define TRAJECTORY_CONTROLLER_TASK_TASK_HPP
+#ifndef trajectory_follower_TASK_TASK_HPP
+#define trajectory_follower_TASK_TASK_HPP
 
-#include "trajectory_controller/TaskBase.hpp"
+#include "trajectory_follower/TaskBase.hpp"
  
 #include <base/geometry/spline.h>
 #include "TrajectoryControllerNoOrientation.hpp" 
@@ -17,7 +17,7 @@ namespace RTT
 }
 
 
-namespace trajectory_controller {
+namespace trajectory_follower {
     class Task : public TaskBase
     {
 	friend class TaskBase;
@@ -43,7 +43,7 @@ namespace trajectory_controller {
     
 
     public:
-        Task(std::string const& name = "trajectory_controller::Task");
+        Task(std::string const& name = "trajectory_follower::Task");
 
         RTT::NonPeriodicActivity* getNonPeriodicActivity();
 
@@ -67,7 +67,7 @@ namespace trajectory_controller {
          * stay in Stopped. Otherwise, it goes into Running and updateHook()
          * will be called.
          */
- bool startHook();
+        bool startHook();
 
         /** This hook is called by Orocos when the component is in the Running
          * state, at each activity step. Here, the activity gives the "ticks"
@@ -88,7 +88,7 @@ namespace trajectory_controller {
          * this call. If the trigger is caused by something different (for
          * instance, a periodic update), then this set is empty.
          */
- void updateHook(std::vector<RTT::PortInterface*> const& updated_ports);
+         void updateHook();
         
 
         /** This hook is called by Orocos when the component is in the

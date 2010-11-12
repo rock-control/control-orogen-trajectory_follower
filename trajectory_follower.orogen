@@ -1,4 +1,4 @@
-name "trajectory_controller"
+name "trajectory_follower"
 version "0.1"
 
 import_types_from "base"
@@ -7,7 +7,6 @@ using_library "trajectory_follower"
 using_library "base-lib"
 
 import_types_from "TrajectoryFollowerTypes.hpp"
-import_types_from "base/motion_command.h"
 
 task_context "Task" do
     property("controllerType", "int").
@@ -50,13 +49,13 @@ task_context "Task" do
     output_port("motion_command", "base/MotionCommand2D").
         doc "Drive command that should steer the robot to the target Pose"
 
-    output_port("currentCurvePoint", "trajectory_controller/CurvePoint").
+    output_port("currentCurvePoint", "trajectory_follower/CurvePoint").
     	doc "Corresponding point on the reference curve"
     
-    output_port("currentPose", "trajectory_controller/RobotPose").
+    output_port("currentPose", "trajectory_follower/RobotPose").
     	doc "Current pose of the robot"
 
-    output_port("poseError", "trajectory_controller/TrajError").
+    output_port("poseError", "trajectory_follower/TrajError").
     	doc "Pose error calculated by NURBSCurve3D"
 
     needs_configuration

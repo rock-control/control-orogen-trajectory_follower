@@ -1,20 +1,14 @@
 #include "Task.hpp"
 
-#include <rtt/NonPeriodicActivity.hpp>
-
 #include <iostream>
 #include <math.h>
 
 #define SAMPLING_TIME 0.01
 #define SEARCH_DIST   0.5  // Distance that will be searched along the curve for the closest point
 
-using namespace trajectory_controller;
+using namespace trajectory_follower;
 using namespace base::geometry;
 using namespace Eigen;
-
-RTT::NonPeriodicActivity* Task::getNonPeriodicActivity()
-{ return dynamic_cast< RTT::NonPeriodicActivity* >(getActivity().get()); }
-
 
 Task::Task(std::string const& name)
     : TaskBase(name)
@@ -75,12 +69,12 @@ double angleLimit(double angle)
 }
 
 
-void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
+void Task::updateHook()
 {
     wrappers::samples::RigidBodyState rbpose;
     std::vector<wrappers::Waypoint> trajectory;
 
-    if(_trajectory.read(trajectory)) 
+    if(_trajectory.flush(trajectory) == RTT::NewData)
     {
         std::vector<Eigen::Vector3d> points;
 
@@ -95,7 +89,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 
     if(bCurveGenerated && !bFoundClosestPoint)
     {
-	if(_pose.read(rbpose))
+	if(_pose.flush(rbpose) == RTT::NewData)
 	{
 	    pose.position = rbpose.position;
 	    para = oCurve.findOneClosestPoint(rbpose.position);
@@ -105,7 +99,7 @@ void Task::updateHook(std::vector<RTT::PortInterface*> const& updated_ports)
 	    return;
     }
 
-    if(_pose.read(rbpose) && bCurveGenerated) 
+    if(_pose.read(rbpose) != RTT::NoData && bCurveGenerated) 
     {
 	pose.position = rbpose.position;
 	pose.heading  = heading(rbpose.orientation);
