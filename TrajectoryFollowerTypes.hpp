@@ -1,7 +1,7 @@
 #ifndef TRAJECTORY_FOLLOWER_TYPES_HPP
 #define TRAJECTORY_FOLLOWER_TYPES_HPP
 
-#include <base/wrappers/eigen.h>
+#include <base/pose.h>
 
 namespace trajectory_follower
 {
@@ -15,7 +15,7 @@ namespace trajectory_follower
 
     struct RobotPose
     {
-	wrappers::Vector3 position;
+	base::Position position;
 	double heading;		// Heading angle
     };
 

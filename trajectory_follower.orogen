@@ -39,11 +39,11 @@ task_context "Task" do
     property("K3_PI", "double").
             doc "K3 gain for PI controller"
 
-    input_port("trajectory", "/std/vector</wrappers/Waypoint>").
+    input_port("trajectory", "/base/geometry/Spline<3>").
         doc("Trajectory the robot should follow").
         needs_buffered_connection
 
-    input_port("pose", "wrappers/samples/RigidBodyState").
+    input_port("pose", "/base/samples/RigidBodyState").
         doc "Position and orientation of the Robot"
 
     output_port("motion_command", "base/MotionCommand2D").

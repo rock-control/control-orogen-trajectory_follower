@@ -71,22 +71,13 @@ double angleLimit(double angle)
 
 void Task::updateHook()
 {
-    wrappers::samples::RigidBodyState rbpose;
-    std::vector<wrappers::Waypoint> trajectory;
-
-    if(_trajectory.flush(trajectory) == RTT::NewData)
+    if(_trajectory.flush(oCurve) == RTT::NewData)
     {
-        std::vector<Eigen::Vector3d> points;
-
-        for(std::vector<wrappers::Waypoint>::iterator it = trajectory.begin(); it != trajectory.end(); it++) 
-        {
-            points.push_back(it->position);
-        }
 	bFoundClosestPoint = false;
-        oCurve.interpolate(points);
         bCurveGenerated = true; 
     }
 
+    base::samples::RigidBodyState rbpose;
     if(bCurveGenerated && !bFoundClosestPoint)
     {
 	if(_pose.flush(rbpose) == RTT::NewData)
