@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <package>
-  <depend package="base"/>
   <depend package="control/trajectory_follower"/>
   <depend package="base/orogen/types"/>
   <depend package="orogen"/>
