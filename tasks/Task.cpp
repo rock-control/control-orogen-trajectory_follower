@@ -71,7 +71,7 @@ double angleLimit(double angle)
 
 void Task::updateHook()
 {
-    if(_trajectory.flush(oCurve) == RTT::NewData)
+    if(_trajectory.readNewest(oCurve) == RTT::NewData)
     {
 	bFoundClosestPoint = false;
         bCurveGenerated = true; 
@@ -80,7 +80,7 @@ void Task::updateHook()
     base::samples::RigidBodyState rbpose;
     if(bCurveGenerated && !bFoundClosestPoint)
     {
-	if(_pose.flush(rbpose) == RTT::NewData)
+	if(_pose.readNewest(rbpose) == RTT::NewData)
 	{
 	    pose.position = rbpose.position;
 	    para = oCurve.findOneClosestPoint(rbpose.position);
