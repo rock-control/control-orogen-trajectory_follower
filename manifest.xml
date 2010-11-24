@@ -2,6 +2,6 @@
 <package>
   <depend package="base"/>
   <depend package="control/trajectory_follower"/>
-  <depend package="modules/base"/>
+  <depend package="base/orogen/types"/>
   <depend package="orogen"/>
 </package>
