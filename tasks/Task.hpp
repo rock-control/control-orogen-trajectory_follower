@@ -44,6 +44,7 @@ namespace trajectory_follower {
 
     public:
         Task(std::string const& name = "trajectory_follower::Task");
+        ~Task();
 
         RTT::NonPeriodicActivity* getNonPeriodicActivity();
 

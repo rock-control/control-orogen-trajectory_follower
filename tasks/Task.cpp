@@ -27,6 +27,8 @@ Task::Task(std::string const& name)
     _K3_PI.set(150.0);
 }
 
+Task::~Task() {}
+
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See Task.hpp for more detailed
