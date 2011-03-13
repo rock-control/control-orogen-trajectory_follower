@@ -4,9 +4,9 @@
 #include "trajectory_follower/TaskBase.hpp"
  
 #include <base/geometry/spline.h>
-#include "TrajectoryControllerNoOrientation.hpp" 
-#include "TrajectoryControllerP.hpp" 
-#include "TrajectoryControllerPI.hpp" 
+#include <trajectory_follower/TrajectoryControllerNoOrientation.hpp>
+#include <trajectory_follower/TrajectoryControllerP.hpp> 
+#include <trajectory_follower/TrajectoryControllerPI.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry> 
