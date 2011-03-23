@@ -58,6 +58,10 @@ task_context "Task" do
     output_port("poseError", "trajectory_follower/TrajError").
     	doc "Pose error calculated by NURBSCurve3D"
 
+    # Runtime state that is emitted when we reach the end of the curve, to
+    # announce it to the outside world
+    runtime_states :REACHED_THE_END
+
     # Runtime error state entered when the initial stability test failed for a
     # particular trajectory. Note that the component might switch back to
     # runtime state if a new trajectory / new pose is received

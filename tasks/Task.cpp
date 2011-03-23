@@ -98,6 +98,9 @@ void Task::updateHook()
     pose.heading  = rbpose.getYaw();
     if ( para < oCurve.getEndParam() )
     {
+        if (state() == REACHED_THE_END)
+            state(RUNNING);
+
         if(_controllerType.get() == 0)
         {
             pose.position.x() = pose.position.x() - (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * sin(pose.heading);
@@ -143,6 +146,11 @@ void Task::updateHook()
             motionCmd = oTrajController_P.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
         else if(_controllerType.get() == 2)
             motionCmd = oTrajController_PI.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
+    }
+    else
+    {
+        state(REACHED_THE_END);
+        std::cout << "curve parameter past end of curve" << std::endl;
     }
 
     mc.translation = motionCmd(0);
