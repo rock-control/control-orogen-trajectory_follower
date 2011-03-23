@@ -73,109 +73,102 @@ double angleLimit(double angle)
 
 void Task::updateHook()
 {
-    if(_trajectory.readNewest(oCurve) == RTT::NewData)
-    {
-	bFoundClosestPoint = false;
-        bCurveGenerated = true; 
-    }
+    base::MotionCommand2D mc;
+    mc.translation = 0;
+    mc.rotation    = 0;
 
     base::samples::RigidBodyState rbpose;
-    if(bCurveGenerated && !bFoundClosestPoint)
+    if(_pose.readNewest(rbpose) == RTT::NoData)
     {
-	if(_pose.readNewest(rbpose) == RTT::NewData)
-	{
-	    pose.position = rbpose.position;
-	    para = oCurve.findOneClosestPoint(rbpose.position);
-	    bFoundClosestPoint = true;
-	}
-	else 
-	    return;
-    }
-
-    if(_pose.read(rbpose) != RTT::NoData && bCurveGenerated) 
-    {
-	pose.position = rbpose.position;
-	pose.heading  = heading(rbpose.orientation);
-	if ( para < oCurve.getEndParam() )
-	{
-	    if(_controllerType.get() == 0)
-	    {
-		pose.position.x() = pose.position.x() - (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * sin(pose.heading);
-		pose.position.y() = pose.position.y() + (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * cos(pose.heading);
-	    }
-            else
-	    {
-		pose.position.x() = pose.position.x() - (_gpsCenterofRotationOffset.get()) * sin(pose.heading);
-		pose.position.y() = pose.position.y() + (_gpsCenterofRotationOffset.get()) * cos(pose.heading);
-	    }
-
-	    Eigen::Vector3d vError = oCurve.poseError(pose.position, pose.heading, para);
-	    para  = vError(2);
-	   
-	    error.d 	  = vError(0);
-	    error.theta_e = angleLimit(vError(1) + M_PI_2);
-	    error.param   = vError(2);
-	    
- 	    curvePoint.pose.position 	= oCurve.getPoint(para); 	    
-	    curvePoint.pose.heading  	= oCurve.getHeading(para);
-	    curvePoint.param 		= para;
-	
-	    if(!bInitStable)
-	    {
-		if(_controllerType.get() == 0)
-		{
-		    if(!oTrajController_nO.checkInitialStability(error.d, error.theta_e, oCurve.getCurvatureMax()))	    
-		    {
-			std::cout << "Trajectory controller: no orientation ...failed Initial stability test";
-//			return;
-		    }
-		}
-		else if(_controllerType.get() == 1)
-		{
-		    if(!oTrajController_P.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
-		    {
-			std::cout << "Trajectory controller: Proportional ...failed Initial stability test";
-			return;
-		    }
-		}	
-		else if(_controllerType.get() == 2)
-		{
-		    if(!oTrajController_PI.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax()))	    
-		    {
-			std::cout << "Trajectory controller: Proportional integral ...failed Initial stability test";
-			return;
-		    }	
-		}
-		bInitStable = true;	
-	    }
-
-	    if(_controllerType.get() == 0)
-		motionCmd = oTrajController_nO.update(_forwardVelocity.get(), error.d, error.theta_e); 
-	    else if(_controllerType.get() == 1)
-		motionCmd = oTrajController_P.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
-	    else if(_controllerType.get() == 2)
-		motionCmd = oTrajController_PI.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
-	}
-	else 
-	{
-	    motionCmd(0) = 0.0; 
-	    motionCmd(1) = 0.0; 
-	}	    
-
-	base::MotionCommand2D mc;
-	mc.translation = motionCmd(0);
-	mc.rotation    = motionCmd(1);
-
         _motion_command.write(mc);
-	_currentCurvePoint.write(curvePoint);
-	_poseError.write(error);
-	_currentPose.write(pose);
+        return;
     }
+
+    RTT::FlowStatus trajectory_status = _trajectory.readNewest(oCurve, false);
+    if (trajectory_status == RTT::NoData)
+    {
+        _motion_command.write(mc);
+        return;
+    }
+    else if (trajectory_status == RTT::NewData)
+    {
+        para = oCurve.findOneClosestPoint(rbpose.position);
+        bInitStable = false;
+        std::cout << "calculated closest point : " << para <<std::endl;
+    }
+
+    Eigen::Vector2d motionCmd;
+    motionCmd(0) = 0.0; 
+    motionCmd(1) = 0.0; 
+
+    pose.position = rbpose.position;
+    pose.heading  = heading(rbpose.orientation);
+    std::cout << "heading=" << heading << " yaw=" << rbpose.getYaw() << std::endl;
+    if ( para < oCurve.getEndParam() )
+    {
+        if(_controllerType.get() == 0)
+        {
+            pose.position.x() = pose.position.x() - (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * sin(pose.heading);
+            pose.position.y() = pose.position.y() + (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * cos(pose.heading);
+        }
+        else
+        {
+            pose.position.x() = pose.position.x() - (_gpsCenterofRotationOffset.get()) * sin(pose.heading);
+            pose.position.y() = pose.position.y() + (_gpsCenterofRotationOffset.get()) * cos(pose.heading);
+        }
+
+        Eigen::Vector3d vError = oCurve.poseError(pose.position, pose.heading, para);
+        para  = vError(2);
+       
+        error.d 	  = vError(0);
+        error.theta_e = angleLimit(vError(1) + M_PI_2);
+        error.param   = vError(2);
+        
+        curvePoint.pose.position 	= oCurve.getPoint(para); 	    
+        curvePoint.pose.heading  	= oCurve.getHeading(para);
+        curvePoint.param 		= para;
+    
+        if(!bInitStable)
+        {
+            if(_controllerType.get() == 0)
+                bInitStable = oTrajController_nO.checkInitialStability(error.d, error.theta_e, oCurve.getCurvatureMax());
+            else if(_controllerType.get() == 1)
+                bInitStable = oTrajController_P.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax());
+            else if(_controllerType.get() == 2)
+                bInitStable = oTrajController_PI.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax());
+
+            if (!bInitStable)
+            {
+                std::cout << "Trajectory controller: failed initial stability test";
+                _motion_command.write(mc);
+                return state(INITIAL_STABILITY_FAILED);
+            }
+        }
+
+        if(_controllerType.get() == 0)
+            motionCmd = oTrajController_nO.update(_forwardVelocity.get(), error.d, error.theta_e); 
+        else if(_controllerType.get() == 1)
+            motionCmd = oTrajController_P.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
+        else if(_controllerType.get() == 2)
+            motionCmd = oTrajController_PI.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
+    }
+
+    mc.translation = motionCmd(0);
+    mc.rotation    = motionCmd(1);
+
+    _motion_command.write(mc);
+    _currentCurvePoint.write(curvePoint);
+    _poseError.write(error);
+    _currentPose.write(pose);
 }
 
-// void Task::errorHook()
-// {
-// }
+void Task::errorHook()
+{
+    updateHook();
+    if (bInitStable)
+        recover();
+}
+
 // void Task::stopHook()
 // {
 // }

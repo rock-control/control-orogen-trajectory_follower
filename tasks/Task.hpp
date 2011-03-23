@@ -37,8 +37,6 @@ namespace trajectory_follower {
 	trajectory_follower::chainedProportional oTrajController_P;
 	trajectory_follower::chainedProportionalIntegral oTrajController_PI;
 
-	Eigen::Vector2d motionCmd;
-
     protected:
     
 
@@ -98,7 +96,7 @@ namespace trajectory_follower {
          *
          * Call recovered() to go back in the Runtime state.
          */
-        // void errorHook();
+        void errorHook();
 
         /** This hook is called by Orocos when the state machine transitions
          * from Running to Stopped after stop() has been called.

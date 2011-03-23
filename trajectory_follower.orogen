@@ -58,6 +58,11 @@ task_context "Task" do
     output_port("poseError", "trajectory_follower/TrajError").
     	doc "Pose error calculated by NURBSCurve3D"
 
+    # Runtime error state entered when the initial stability test failed for a
+    # particular trajectory. Note that the component might switch back to
+    # runtime state if a new trajectory / new pose is received
+    error_states :INITIAL_STABILITY_FAILED
+
     needs_configuration
     port_driven
 end
