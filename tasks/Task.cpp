@@ -53,13 +53,6 @@ bool Task::startHook()
 }
 
 
-double heading(Eigen::Quaterniond q)
-{
-    // Hope this works ... needs a better fix
-    return atan2(2*q.x()*q.y()+2*q.w()*q.z() , 1-2*(q.y()*q.y() + q.z()*q.z()));
-}
-
-
 double angleLimit(double angle)
 {
     if(angle > M_PI)
@@ -102,8 +95,7 @@ void Task::updateHook()
     motionCmd(1) = 0.0; 
 
     pose.position = rbpose.position;
-    pose.heading  = heading(rbpose.orientation);
-    std::cout << "heading=" << heading << " yaw=" << rbpose.getYaw() << std::endl;
+    pose.heading  = rbpose.getYaw();
     if ( para < oCurve.getEndParam() )
     {
         if(_controllerType.get() == 0)
