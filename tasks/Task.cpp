@@ -126,7 +126,10 @@ void Task::updateHook()
         if(!bInitStable)
         {
             if(_controllerType.get() == 0)
+            {
                 bInitStable = oTrajController_nO.checkInitialStability(error.d, error.theta_e, oCurve.getCurvatureMax());
+                bInitStable = true;
+            }
             else if(_controllerType.get() == 1)
                 bInitStable = oTrajController_P.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax());
             else if(_controllerType.get() == 2)
