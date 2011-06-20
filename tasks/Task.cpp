@@ -149,7 +149,8 @@ void Task::updateHook()
     }
     else
     {
-        state(REACHED_THE_END);
+        if (state() != REACHED_THE_END)
+            state(REACHED_THE_END);
         std::cout << "curve parameter past end of curve" << std::endl;
     }
 
