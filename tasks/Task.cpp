@@ -43,6 +43,7 @@ Task::~Task() {}
 bool Task::startHook()
 {
     oTrajController_nO.setConstants( _forwardLength.get(), _K0_nO.get() );
+    oTrajController_nO.setPointTurnSpeed( _pointTurnSpeed.get() );
     oTrajController_P.setConstants( _K2_P.get(), _K3_P.get() );
     oTrajController_PI.setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), SAMPLING_TIME);
     
@@ -122,7 +123,9 @@ void Task::updateHook()
         curvePoint.pose.position 	= oCurve.getPoint(para); 	    
         curvePoint.pose.heading  	= oCurve.getHeading(para);
         curvePoint.param 		= para;
-    
+
+	//disable this test for testing, as it seems to be not needed
+	bInitStable = true;
         if(!bInitStable)
         {
             if(_controllerType.get() == 0)

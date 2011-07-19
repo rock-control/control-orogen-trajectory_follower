@@ -15,6 +15,9 @@ task_context "Task" do
     property("forwardVelocity", "double").
             doc "forward speed of the robot"
 
+    property("pointTurnSpeed", "double", 0.2).
+            doc "point turn speed of the robot"
+
     property("forwardLength", "double").
             doc "moving the pose estimation point forward for no orientation controller"
     
