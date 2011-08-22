@@ -88,7 +88,6 @@ void Task::updateHook()
     {
         para = oCurve.findOneClosestPoint(rbpose.position);
         bInitStable = false;
-        std::cout << "calculated closest point : " << para <<std::endl;
     }
 
     Eigen::Vector2d motionCmd;
