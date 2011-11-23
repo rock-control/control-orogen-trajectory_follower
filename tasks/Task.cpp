@@ -175,9 +175,13 @@ void Task::errorHook()
         recover();
 }
 
-// void Task::stopHook()
-// {
-// }
+void Task::stopHook()
+{
+    base::MotionCommand2D mc;
+    mc.translation = 0;
+    mc.rotation    = 0;
+    _motion_command.write(mc);
+}
 // void Task::cleanupHook()
 // {
 // }
