@@ -3,4 +3,5 @@
   <depend package="control/trajectory_follower"/>
   <depend package="base/orogen/types"/>
   <depend package="orogen"/>
+  <tags>stable</tags>
 </package>
