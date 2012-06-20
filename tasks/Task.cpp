@@ -86,7 +86,7 @@ void Task::updateHook()
     }
     else if (trajectory_status == RTT::NewData)
     {
-        para = oCurve.findOneClosestPoint(rbpose.position);
+        para = oCurve.findOneClosestPoint(rbpose.position, 0.01);
         bInitStable = false;
     }
 
