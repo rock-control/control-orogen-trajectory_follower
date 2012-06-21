@@ -74,4 +74,12 @@ task_context "Task" do
     port_driven
 end
 
-
+deployment "test_trajectory" do
+    do_not_install
+    trajectory_task = task("trajectory", "Task")
+    
+    add_default_logger
+    if !corba_enabled?
+        browse trajectory_task
+    end
+end
