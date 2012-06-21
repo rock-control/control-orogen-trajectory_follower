@@ -2,7 +2,7 @@
 
 require 'orocos'
 require 'orocos/log'
-require 'vizkit'
+#require 'vizkit'
 
 include Orocos
 
@@ -15,7 +15,7 @@ Orocos.conf.load_dir("#{ENV['AUTOPROJ_PROJECT_BASE']}/bundles/asguard/config/oro
 Orocos.run 'test_trajectory' do |p|
     Orocos.log_all_ports 
     tf = p.task 'trajectory'
-    Orocos.conf.apply(trajectory_follower, ['default'])
+    Orocos.conf.apply(tf, ['default'])
 
     if ARGV.size == 0 then
 	log_replay = Orocos::Log::Replay.open( "corridor_following.0.log", "eslam_pose_estimator.0.log" ) 
