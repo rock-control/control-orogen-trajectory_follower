@@ -3,10 +3,7 @@
 
 #include "trajectory_follower/TaskBase.hpp"
  
-#include <base/geometry/spline.h>
-#include <trajectory_follower/TrajectoryControllerNoOrientation.hpp>
-#include <trajectory_follower/TrajectoryControllerP.hpp> 
-#include <trajectory_follower/TrajectoryControllerPI.hpp>
+#include <trajectory_follower/TrajectoryFollower.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry> 
@@ -22,23 +19,9 @@ namespace trajectory_follower {
     {
 	friend class TaskBase;
 
-	base::geometry::Spline<3> oCurve;
-	bool bCurveGenerated;
-	bool bFoundClosestPoint;    // check if the starting pose is added to the trajectory
-	bool bInitStable; 
-
-	double para;
-
-    	TrajError error;
-	CurvePoint curvePoint;
-	RobotPose pose;
-
-	trajectory_follower::noOrientation oTrajController_nO;
-	trajectory_follower::chainedProportional oTrajController_P;
-	trajectory_follower::chainedProportionalIntegral oTrajController_PI;
-
+	std::vector<base::Trajectory> trajectories;
     protected:
-    
+	TrajectoryFollower *trFollower;
 
     public:
         Task(std::string const& name = "trajectory_follower::Task");
@@ -96,7 +79,7 @@ namespace trajectory_follower {
          *
          * Call recovered() to go back in the Runtime state.
          */
-        void errorHook();
+//         void errorHook();
 
         /** This hook is called by Orocos when the state machine transitions
          * from Running to Stopped after stop() has been called.

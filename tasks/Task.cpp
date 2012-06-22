@@ -11,8 +11,7 @@ using namespace base::geometry;
 using namespace Eigen;
 
 Task::Task(std::string const& name)
-    : TaskBase(name)
-    , oCurve(0.001, 3)
+    : TaskBase(name), trFollower(NULL)
 {
     _controllerType.set(0);
     _forwardVelocity.set(0.2);
@@ -42,28 +41,18 @@ Task::~Task() {}
 
 bool Task::startHook()
 {
-    oTrajController_nO.setConstants( _forwardLength.get(), _K0_nO.get() );
-    oTrajController_nO.setPointTurnSpeed( _pointTurnSpeed.get() );
-    oTrajController_P.setConstants( _K2_P.get(), _K3_P.get() );
-    oTrajController_PI.setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), SAMPLING_TIME);
+    if(trFollower)
+	delete trFollower;
     
-    bCurveGenerated = false;
-    bFoundClosestPoint = false;
-    bInitStable = false;
+    trFollower = new TrajectoryFollower(_forwardLength.get(), _gpsCenterofRotationOffset.get(), _controllerType.get());
+    
+    trFollower->getNoOrientationController().setConstants( _forwardLength.get(), _K0_nO.get() );
+    trFollower->getNoOrientationController().setPointTurnSpeed( _pointTurnSpeed.get() );
+    trFollower->getPController().setConstants( _K2_P.get(), _K3_P.get() );
+    trFollower->getPIController().setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), SAMPLING_TIME);
+    
     return true;
 }
-
-
-double angleLimit(double angle)
-{
-    if(angle > M_PI)
-	return angle - 2*M_PI;
-    else if (angle < -M_PI)
-	return angle + 2*M_PI;
-    else
-     	return angle;
-}
-
 
 void Task::updateHook()
 {
@@ -74,109 +63,74 @@ void Task::updateHook()
     base::samples::RigidBodyState rbpose;
     if(_pose.readNewest(rbpose) == RTT::NoData)
     {
+	trajectories.clear();
+	trFollower->removeTrajectory();
         _motion_command.write(mc);
         return;
     }
 
-    RTT::FlowStatus trajectory_status = _trajectory.readNewest(oCurve, false);
+    RTT::FlowStatus trajectory_status = _trajectory.readNewest(trajectories, false);
     if (trajectory_status == RTT::NoData)
     {
+	trajectories.clear();
+	trFollower->removeTrajectory();
         _motion_command.write(mc);
         return;
     }
     else if (trajectory_status == RTT::NewData)
     {
-        para = oCurve.findOneClosestPoint(rbpose.position, 0.01);
-        bInitStable = false;
+	if(!trajectories.empty())
+	{
+	    trFollower->setNewTrajectory(trajectories.front());
+	    trajectories.erase(trajectories.begin());
+	}
     }
 
-    Eigen::Vector2d motionCmd;
-    motionCmd(0) = 0.0; 
-    motionCmd(1) = 0.0; 
-
-    pose.position = rbpose.position;
-    pose.heading  = rbpose.getYaw();
-    if ( para < oCurve.getEndParam() )
+    Eigen::Vector2d motionCmd;    
+    TrajectoryFollower::FOLLOWER_STATUS status = trFollower->traverseTrajectory(motionCmd, base::Pose(rbpose.position, rbpose.orientation));
+    
+    switch(status)
     {
-        if (state() == REACHED_THE_END)
-            state(RUNNING);
-
-        if(_controllerType.get() == 0)
-        {
-            pose.position.x() = pose.position.x() - (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * sin(pose.heading);
-            pose.position.y() = pose.position.y() + (_forwardLength.get() + _gpsCenterofRotationOffset.get()) * cos(pose.heading);
-        }
-        else
-        {
-            pose.position.x() = pose.position.x() - (_gpsCenterofRotationOffset.get()) * sin(pose.heading);
-            pose.position.y() = pose.position.y() + (_gpsCenterofRotationOffset.get()) * cos(pose.heading);
-        }
-
-        Eigen::Vector3d vError = oCurve.poseError(pose.position, pose.heading, para);
-        para  = vError(2);
-       
-        error.d 	  = vError(0);
-        error.theta_e = angleLimit(vError(1) + M_PI_2);
-        error.param   = vError(2);
-        
-        curvePoint.pose.position 	= oCurve.getPoint(para); 	    
-        curvePoint.pose.heading  	= oCurve.getHeading(para);
-        curvePoint.param 		= para;
-
-	//disable this test for testing, as it seems to be not needed
-	bInitStable = true;
-        if(!bInitStable)
-        {
-            if(_controllerType.get() == 0)
-            {
-                bInitStable = oTrajController_nO.checkInitialStability(error.d, error.theta_e, oCurve.getCurvatureMax());
-                bInitStable = true;
-            }
-            else if(_controllerType.get() == 1)
-                bInitStable = oTrajController_P.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax());
-            else if(_controllerType.get() == 2)
-                bInitStable = oTrajController_PI.checkInitialStability(error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getCurvatureMax());
-
-            if (!bInitStable)
-            {
-                std::cout << "Trajectory controller: failed initial stability test";
-                _motion_command.write(mc);
-                return state(INITIAL_STABILITY_FAILED);
-            }
-        }
-
-        if(_controllerType.get() == 0)
-            motionCmd = oTrajController_nO.update(_forwardVelocity.get(), error.d, error.theta_e); 
-        else if(_controllerType.get() == 1)
-            motionCmd = oTrajController_P.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
-        else if(_controllerType.get() == 2)
-            motionCmd = oTrajController_PI.update(_forwardVelocity.get(), error.d, error.theta_e, oCurve.getCurvature(para), oCurve.getVariationOfCurvature(para));
+	case TrajectoryFollower::REACHED_TRAJECTORY_END:
+	    if(!trajectories.empty())
+	    {
+		state(RUNNING);
+		trFollower->setNewTrajectory(trajectories.front());
+		trajectories.erase(trajectories.begin());
+	    } else
+	    {
+		state(REACHED_THE_END);
+	    }
+	    break;
+	case TrajectoryFollower::RUNNING:
+	    state(RUNNING);
+	    break;
+	case TrajectoryFollower::INITIAL_STABILITY_FAILED:
+	    state(INITIAL_STABILITY_FAILED);
+	    break;
     }
-    else
-    {
-        if (state() != REACHED_THE_END)
-            state(REACHED_THE_END);
-        std::cout << "curve parameter past end of curve" << std::endl;
-    }
-
+    
     mc.translation = motionCmd(0);
     mc.rotation    = motionCmd(1);
-
+    
     _motion_command.write(mc);
-    _currentCurvePoint.write(curvePoint);
-    _poseError.write(error);
-    _currentPose.write(pose);
+    _currentCurvePoint.write(trFollower->getCurvePoint());
+    _poseError.write(trFollower->getControlError());
+    _currentPose.write(trFollower->getPose());
 }
 
-void Task::errorHook()
-{
-    updateHook();
-    if (bInitStable)
-        recover();
-}
+// void Task::errorHook()
+// {
+// }
 
 void Task::stopHook()
 {
+    if(trFollower)
+    {
+	delete trFollower;
+	trFollower = NULL;
+    }
+    
     base::MotionCommand2D mc;
     mc.translation = 0;
     mc.rotation    = 0;

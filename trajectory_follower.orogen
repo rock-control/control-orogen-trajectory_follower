@@ -6,7 +6,7 @@ import_types_from "base"
 using_library "trajectory_follower"
 using_library "base-lib"
 
-import_types_from "TrajectoryFollowerTypes.hpp"
+import_types_from "trajectory_follower/TrajectoryFollowerTypes.hpp"
 
 task_context "Task" do
     property("controllerType", "int").
@@ -42,7 +42,7 @@ task_context "Task" do
     property("K3_PI", "double").
             doc "K3 gain for PI controller"
 
-    input_port("trajectory", "/base/geometry/Spline<3>").
+    input_port("trajectory", "std::vector</base/Trajectory>").
         doc("Trajectory the robot should follow").
         needs_buffered_connection
 
