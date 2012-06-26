@@ -94,19 +94,23 @@ void Task::updateHook()
 	case TrajectoryFollower::REACHED_TRAJECTORY_END:
 	    if(!trajectories.empty())
 	    {
-		state(RUNNING);
+		if(state() != RUNNING)
+		    state(RUNNING);
 		trFollower->setNewTrajectory(trajectories.front());
 		trajectories.erase(trajectories.begin());
 	    } else
 	    {
-		state(REACHED_THE_END);
+		if(state() != REACHED_THE_END)
+		    state(REACHED_THE_END);
 	    }
 	    break;
 	case TrajectoryFollower::RUNNING:
-	    state(RUNNING);
+	    if(state() != RUNNING)
+		state(RUNNING);
 	    break;
 	case TrajectoryFollower::INITIAL_STABILITY_FAILED:
-	    state(INITIAL_STABILITY_FAILED);
+	    if(state() != INITIAL_STABILITY_FAILED)
+		state(INITIAL_STABILITY_FAILED);
 	    break;
     }
     
