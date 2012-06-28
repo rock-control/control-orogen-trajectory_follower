@@ -51,7 +51,20 @@ bool Task::startHook()
     trFollower->getPController().setConstants( _K2_P.get(), _K3_P.get() );
     trFollower->getPIController().setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), SAMPLING_TIME);
     
+    driveSpeed = _forwardVelocity.get();
+    
     return true;
+}
+
+void overwriteTrajectorySpeed(base::Trajectory &tr, double speed)
+{
+    if(base::isUnset<double>(speed))
+	return;
+    
+    if(tr.speed < 0)
+	tr.speed = -speed;
+    else
+	tr.speed = speed;
 }
 
 void Task::updateHook()
@@ -81,8 +94,14 @@ void Task::updateHook()
     {
 	if(!trajectories.empty())
 	{
-	    trFollower->setNewTrajectory(trajectories.front());
+	    base::Trajectory curTr(trajectories.front());
+	    overwriteTrajectorySpeed(curTr, driveSpeed);
+	    trFollower->setNewTrajectory(curTr);
 	    trajectories.erase(trajectories.begin());
+	}
+	else
+	{
+	    trFollower->removeTrajectory();
 	}
     }
 
@@ -96,7 +115,9 @@ void Task::updateHook()
 	    {
 		if(state() != RUNNING)
 		    state(RUNNING);
-		trFollower->setNewTrajectory(trajectories.front());
+		base::Trajectory curTr(trajectories.front());
+		overwriteTrajectorySpeed(curTr, driveSpeed);
+		trFollower->setNewTrajectory(curTr);
 		trajectories.erase(trajectories.begin());
 	    } else
 	    {

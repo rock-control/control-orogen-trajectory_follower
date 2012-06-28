@@ -23,6 +23,8 @@ namespace trajectory_follower {
     protected:
 	TrajectoryFollower *trFollower;
 
+	double driveSpeed;
+	
     public:
         Task(std::string const& name = "trajectory_follower::Task");
         ~Task();
