@@ -73,6 +73,8 @@ void Task::updateHook()
     mc.translation = 0;
     mc.rotation    = 0;
 
+    driveSpeed = _forwardVelocity.get();
+
     base::samples::RigidBodyState rbpose;
     if(_pose.readNewest(rbpose) == RTT::NoData)
     {
