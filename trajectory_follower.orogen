@@ -42,6 +42,9 @@ task_context "Task" do
     property("K3_PI", "double").
             doc "K3 gain for PI controller"
 
+    property("addPoseErrorY", "double", Math::PI / 2.0).
+            doc "Can be used to define the front of the robot (0 = X, Math::PI / 2.0 = Y)"
+
     input_port("trajectory", "std::vector</base/Trajectory>").
         doc("Trajectory the robot should follow").
         needs_buffered_connection

@@ -50,7 +50,8 @@ bool Task::startHook()
     trFollower->getNoOrientationController().setPointTurnSpeed( _pointTurnSpeed.get() );
     trFollower->getPController().setConstants( _K2_P.get(), _K3_P.get() );
     trFollower->getPIController().setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), SAMPLING_TIME);
-    
+    trFollower->setAddPoseErrorY(_addPoseErrorY.get());    
+
     driveSpeed = _forwardVelocity.get();
     
     return true;
