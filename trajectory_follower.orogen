@@ -45,7 +45,7 @@ task_context "Task" do
     property("K3_PI", "double").
             doc "K3 gain for PI controller"
 
-    property("addPoseErrorY", "double", Math::PI / 2.0).
+    property("addPoseErrorY", "double", 0).
             doc "Can be used to define the front of the robot (0 = X, Math::PI / 2.0 = Y)"
             
     property("noOrientationPointTurnUpperLimit", "double", Math::PI / 2.0).
