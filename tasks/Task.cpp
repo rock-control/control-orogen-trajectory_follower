@@ -13,6 +13,7 @@ using namespace Eigen;
 Task::Task(std::string const& name)
     : TaskBase(name), trFollower(NULL)
 {
+    /*
     _controllerType.set(0);
     _forwardVelocity.set(0.2);
     _forwardLength.set(0.1);
@@ -24,6 +25,7 @@ Task::Task(std::string const& name)
     _K0_PI.set(0.0);
     _K2_PI.set(150.0);
     _K3_PI.set(150.0);
+    */
 }
 
 Task::~Task() {}
@@ -63,9 +65,9 @@ void overwriteTrajectorySpeed(base::Trajectory &tr, double speed)
 	return;
     
     if(tr.speed < 0)
-	tr.speed = -speed;
+        tr.speed = -speed;
     else
-	tr.speed = speed;
+        tr.speed = speed;
 }
 
 void Task::updateHook()
@@ -79,8 +81,8 @@ void Task::updateHook()
     base::samples::RigidBodyState rbpose;
     if(_pose.readNewest(rbpose) == RTT::NoData)
     {
-	trajectories.clear();
-	trFollower->removeTrajectory();
+        trajectories.clear();
+        trFollower->removeTrajectory();
         _motion_command.write(mc);
         return;
     }
@@ -88,25 +90,27 @@ void Task::updateHook()
     RTT::FlowStatus trajectory_status = _trajectory.readNewest(trajectories, false);
     if (trajectory_status == RTT::NoData)
     {
-	trajectories.clear();
-	trFollower->removeTrajectory();
+        trajectories.clear();
+        trFollower->removeTrajectory();
         _motion_command.write(mc);
         return;
     }
     else if (trajectory_status == RTT::NewData)
-    {
-	if(!trajectories.empty())
-	{
-	    base::Trajectory curTr(trajectories.front());
-	    overwriteTrajectorySpeed(curTr, driveSpeed);
-	    trFollower->setNewTrajectory(curTr);
-	    trajectories.erase(trajectories.begin());
-	}
-	else
-	{
-	    trFollower->removeTrajectory();
-	}
+        {
+        if(!trajectories.empty())
+        {
+            base::Trajectory curTr(trajectories.front());
+            overwriteTrajectorySpeed(curTr, driveSpeed);
+            trFollower->setNewTrajectory(curTr);
+            trajectories.erase(trajectories.begin());
+        }
+        else
+        {
+            trFollower->removeTrajectory();
+        }
     }
+    
+    std::vector<base::Trajectory>::iterator it = trajectories.begin();
 
     Eigen::Vector2d motionCmd;    
     TrajectoryFollower::FOLLOWER_STATUS status = trFollower->traverseTrajectory(motionCmd, base::Pose(rbpose.position, rbpose.orientation));
@@ -116,17 +120,18 @@ void Task::updateHook()
 	case TrajectoryFollower::REACHED_TRAJECTORY_END:
 	    if(!trajectories.empty())
 	    {
-		if(state() != RUNNING)
-		    state(RUNNING);
-		base::Trajectory curTr(trajectories.front());
-		overwriteTrajectorySpeed(curTr, driveSpeed);
-		trFollower->setNewTrajectory(curTr);
-		trajectories.erase(trajectories.begin());
+		    if(state() != RUNNING)
+		        state(RUNNING);
+		    base::Trajectory curTr(trajectories.front());
+		    overwriteTrajectorySpeed(curTr, driveSpeed);
+		    trFollower->setNewTrajectory(curTr);
+		    trajectories.erase(trajectories.begin());
 	    } else
 	    {
 		if(state() != REACHED_THE_END)
 		    state(REACHED_THE_END);
 	    }
+	    std::cout << "End of the trajectory reached" << std::endl;
 	    break;
 	case TrajectoryFollower::RUNNING:
 	    if(state() != RUNNING)
@@ -135,6 +140,7 @@ void Task::updateHook()
 	case TrajectoryFollower::INITIAL_STABILITY_FAILED:
 	    if(state() != INITIAL_STABILITY_FAILED)
 		state(INITIAL_STABILITY_FAILED);
+		std::cout << "Trajectory follower failed" << std::endl;
 	    break;
     }
     
