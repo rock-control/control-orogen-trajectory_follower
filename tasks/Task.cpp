@@ -131,7 +131,7 @@ void Task::updateHook()
 		if(state() != REACHED_THE_END)
 		    state(REACHED_THE_END);
 	    }
-	    std::cout << "End of the trajectory reached" << std::endl;
+	    RTT::log(RTT::Info) << "End of the trajectory reached" << RTT::endlog();
 	    break;
 	case TrajectoryFollower::RUNNING:
 	    if(state() != RUNNING)
@@ -140,7 +140,7 @@ void Task::updateHook()
 	case TrajectoryFollower::INITIAL_STABILITY_FAILED:
 	    if(state() != INITIAL_STABILITY_FAILED)
 		state(INITIAL_STABILITY_FAILED);
-		std::cout << "Trajectory follower failed" << std::endl;
+		RTT::log(RTT::Error) << "Trajectory follower failed" << RTT::endlog();
 	    break;
     }
     
