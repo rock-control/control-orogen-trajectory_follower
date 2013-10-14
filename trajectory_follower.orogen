@@ -15,6 +15,9 @@ task_context "Task" do
     property("forwardVelocity", "double").
             doc "forward speed of the robot"
 
+    property("rotationalVelocity", "double", 0.0).
+            doc "If > 0 this parameter can be used to limit the supported rotation of the 'no orientation' controller "
+
     property("pointTurnSpeed", "double", 0.2).
             doc "point turn speed of the robot"
 
@@ -44,6 +47,15 @@ task_context "Task" do
 
     property("addPoseErrorY", "double", Math::PI / 2.0).
             doc "Can be used to define the front of the robot (0 = X, Math::PI / 2.0 = Y)"
+            
+    property("noOrientationPointTurnUpperLimit", "double", Math::PI / 2.0).
+        doc "Can be used to define the upper limit to start a point turn for controller type 0"
+        
+    property("noOrientationPointTurnLowerLimit", "double", Math::PI / 8.0).
+        doc "Can be used to define the lower limit to stop the point turn for controller type 0"
+        
+    property("noOrientationRotationalVelocity", "double", 0.0).
+        doc "If greater than 0 the supported rotational velocity of controler type 0 will not exceed this limit"
 
     input_port("trajectory", "std::vector</base/Trajectory>").
         doc("Trajectory the robot should follow").

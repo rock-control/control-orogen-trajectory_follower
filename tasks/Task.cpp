@@ -52,7 +52,10 @@ bool Task::startHook()
     trFollower->getNoOrientationController().setPointTurnSpeed( _pointTurnSpeed.get() );
     trFollower->getPController().setConstants( _K2_P.get(), _K3_P.get() );
     trFollower->getPIController().setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), SAMPLING_TIME);
-    trFollower->setAddPoseErrorY(_addPoseErrorY.get());    
+    trFollower->setAddPoseErrorY(_addPoseErrorY.get()); 
+    trFollower->setNoOrientationPointTurnUpperLimit(_noOrientationPointTurnUpperLimit.get());
+    trFollower->setNoOrientationPointTurnLowerLimit(_noOrientationPointTurnLowerLimit.get());   
+    trFollower->setNoOrientationRotationalVelocity(_noOrientationRotationalVelocity.get());
 
     driveSpeed = _forwardVelocity.get();
     
@@ -109,11 +112,10 @@ void Task::updateHook()
             trFollower->removeTrajectory();
         }
     }
-    
-    std::vector<base::Trajectory>::iterator it = trajectories.begin();
 
     Eigen::Vector2d motionCmd;    
-    TrajectoryFollower::FOLLOWER_STATUS status = trFollower->traverseTrajectory(motionCmd, base::Pose(rbpose.position, rbpose.orientation));
+    TrajectoryFollower::FOLLOWER_STATUS status = 
+            trFollower->traverseTrajectory(motionCmd, base::Pose(rbpose.position, rbpose.orientation));
     
     switch(status)
     {
