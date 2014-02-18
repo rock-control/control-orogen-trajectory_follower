@@ -12,8 +12,8 @@ task_context "Task" do
     property("controllerType", "int").
             doc "selects chainedProportionalIntegral controller to be used. Values: 0: No orientation, 1: chainedProportional, 2: chainedProportionalIntegral"
 
-    property("forwardVelocity", "double").
-            doc "forward speed of the robot"
+    property("forwardVelocity", "double", 0.0).
+            doc("If set greater than 0, the speed of the trajectory will be overwritten by this value")
 
     property("rotationalVelocity", "double", 0.0).
             doc "If > 0 this parameter can be used to limit the supported rotation of the 'no orientation' controller "

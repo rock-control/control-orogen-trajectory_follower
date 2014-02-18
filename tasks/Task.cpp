@@ -64,7 +64,7 @@ bool Task::startHook()
 
 void overwriteTrajectorySpeed(base::Trajectory &tr, double speed)
 {
-    if(base::isUnset<double>(speed))
+    if(speed<=0)
 	return;
     
     if(tr.speed < 0)
