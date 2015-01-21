@@ -21,8 +21,8 @@ task_context "Task" do
     property("pointTurnSpeed", "double", 0.2).
             doc "point turn speed of the robot"
 
-    property("forwardLength", "double").
-            doc "moving the pose estimation point forward for no orientation controller"
+    property("forwardLength", "double", 0.1).
+            doc "moving the pose estimation point forward for no orientation controller. This value needs to be greater than 0."
     
     property("gpsCenterofRotationOffset", "double").
             doc "Offset between GPS (w.r.t which Pose Estimator works) and approximated center of rotation"

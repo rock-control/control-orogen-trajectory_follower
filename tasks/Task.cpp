@@ -49,6 +49,9 @@ bool Task::startHook()
 	delete trFollower;
     
     trFollower = new TrajectoryFollower(_forwardLength.get(), _gpsCenterofRotationOffset.get(), _controllerType.get());
+
+    if( !(_forwardLength.get() > 0) )
+	throw std::runtime_error("forwardLength needs to be greater than 0.");
     
     trFollower->getNoOrientationController().setConstants( _forwardLength.get(), _K0_nO.get() );
     trFollower->getNoOrientationController().setPointTurnSpeed( _pointTurnSpeed.get() );
@@ -66,6 +69,9 @@ bool Task::startHook()
 
 void overwriteTrajectorySpeed(base::Trajectory &tr, double speed)
 {
+    if( fabs(tr.speed) < 1e-9 )
+	throw std::runtime_error("Trajectory speed is 0. You will not get anywhere with this.");
+
     if(speed<=0)
 	return;
     
