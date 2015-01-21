@@ -3,6 +3,8 @@
 #include <iostream>
 #include <math.h>
 
+#include <base/Logging.hpp>
+
 #define SAMPLING_TIME 0.01
 #define SEARCH_DIST   0.5  // Distance that will be searched along the curve for the closest point
 
@@ -84,6 +86,11 @@ void Task::updateHook()
     base::samples::RigidBodyState rbpose;
     if(_pose.readNewest(rbpose) == RTT::NoData)
     {
+	if( !trajectories.empty() )
+	{
+	    LOG_WARN_S << "Clearing old trajectories, since there is no pose data.";
+	}
+
         trajectories.clear();
         trFollower->removeTrajectory();
         _motion_command.write(mc);
@@ -93,6 +100,11 @@ void Task::updateHook()
     RTT::FlowStatus trajectory_status = _trajectory.readNewest(trajectories, false);
     if (trajectory_status == RTT::NoData)
     {
+	if( !trajectories.empty() )
+	{
+	    LOG_WARN_S << "Clearing old trajectories, since there is no data on the trajectories port.";
+	}
+
         trajectories.clear();
         trFollower->removeTrajectory();
         _motion_command.write(mc);
@@ -102,6 +114,10 @@ void Task::updateHook()
         {
         if(!trajectories.empty())
         {
+	    // got a new trajectory
+	    // take the first spline and pass it to the follower
+	    // afterwards remove it from the list of remaining 
+	    // splines
             base::Trajectory curTr(trajectories.front());
             overwriteTrajectorySpeed(curTr, driveSpeed);
             trFollower->setNewTrajectory(curTr);
