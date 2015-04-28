@@ -138,9 +138,10 @@ void Task::updateHook()
 
     //this state is checked before the follower status is evaluated, when the status is
     //REACHED_THE_END, the "stop" command is written once, before the WRITING_STOPPED state is entered
-	if ( state() == REACHED_THE_END){
-		if (_stopWriting.get()) {state(REACHED_THE_END_WRITING_STOPPED);}
-	}
+    if ( state() == REACHED_THE_END)
+    {
+        if (_stopWriting.get()) {state(REACHED_THE_END_WRITING_STOPPED);}
+    }
 
 
     Eigen::Vector2d motionCmd;    
@@ -158,7 +159,8 @@ void Task::updateHook()
 		    overwriteTrajectorySpeed(curTr, driveSpeed);
 		    trFollower->setNewTrajectory(curTr);
 		    trajectories.erase(trajectories.begin());
-	    } else
+	    }
+            else
 	    {
 		if(!(state() == REACHED_THE_END || state() == REACHED_THE_END_WRITING_STOPPED))
 		    state(REACHED_THE_END);
@@ -179,7 +181,8 @@ void Task::updateHook()
     mc.translation = motionCmd(0);
     mc.rotation    = motionCmd(1);
     
-    if (state() != REACHED_THE_END_WRITING_STOPPED){
+    if (state() != REACHED_THE_END_WRITING_STOPPED)
+    {
 		_motion_command.write(mc);
 		_currentCurvePoint.write(trFollower->getCurvePoint());
 		_poseError.write(trFollower->getControlError());
