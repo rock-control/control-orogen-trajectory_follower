@@ -1,96 +1,54 @@
+/* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
+
 #include "Task.hpp"
-
-#include <iostream>
-#include <math.h>
-
 #include <base/Logging.hpp>
 
-#define SAMPLING_TIME 0.01
-#define SEARCH_DIST   0.5  // Distance that will be searched along the curve for the closest point
-
 using namespace trajectory_follower;
-using namespace base::geometry;
-using namespace Eigen;
 
 Task::Task(std::string const& name)
-    : TaskBase(name), trFollower(NULL)
+    : TaskBase(name)
 {
-    /*
-    _controllerType.set(0);
-    _forwardVelocity.set(0.2);
-    _forwardLength.set(0.1);
-    _gpsCenterofRotationOffset.set(0.4);
-
-    _K0_nO.set(5.0);
-    _K2_P.set(150.0);
-    _K3_P.set(150.0);
-    _K0_PI.set(0.0);
-    _K2_PI.set(150.0);
-    _K3_PI.set(150.0);
-    */
 }
 
-Task::~Task() {}
+Task::Task(std::string const& name, RTT::ExecutionEngine* engine)
+    : TaskBase(name, engine)
+{
+}
 
+Task::~Task()
+{
+}
 
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See Task.hpp for more detailed
 // documentation about them.
 
-//bool Task::configureHook()
-//{
-//  
-// return true;
-//}
-
-bool Task::startHook()
+bool Task::configureHook()
 {
-    if(trFollower)
-	delete trFollower;
-    
-    trFollower = new TrajectoryFollower(_forwardLength.get(), _gpsCenterofRotationOffset.get(), _controllerType.get());
-
-    if( !(_forwardLength.get() > 0) )
-	throw std::runtime_error("forwardLength needs to be greater than 0.");
-    
-    trFollower->getNoOrientationController().setConstants( _forwardLength.get(), _K0_nO.get() );
-    trFollower->getNoOrientationController().setPointTurnSpeed( _pointTurnSpeed.get() );
-    trFollower->getPController().setConstants( _K2_P.get(), _K3_P.get() );
-    trFollower->getPIController().setConstants( _K0_PI.get(), _K2_PI.get(), _K3_PI.get(), SAMPLING_TIME);
-    trFollower->setAddPoseErrorY(_addPoseErrorY.get()); 
-    trFollower->setNoOrientationPointTurnUpperLimit(_noOrientationPointTurnUpperLimit.get());
-    trFollower->setNoOrientationPointTurnLowerLimit(_noOrientationPointTurnLowerLimit.get());   
-    trFollower->setNoOrientationRotationalVelocity(_noOrientationRotationalVelocity.get());
-
-    driveSpeed = _forwardVelocity.get();
-    
+    if (! TaskBase::configureHook())
+        return false;
     return true;
 }
-
-void overwriteTrajectorySpeed(base::Trajectory &tr, double speed)
+bool Task::startHook()
 {
-    if( fabs(tr.speed) < 1e-9 )
-	throw std::runtime_error("Trajectory speed is 0. You will not get anywhere with this.");
+    trajectoryFollower = TrajectoryFollower( _controller_type.value(),
+        _no_orientation_controller_config.value(),
+        _chained_controller_config.value(),
+        base::Pose( _pose_transform.value() ) );
 
-    if(speed<=0)
-	return;
-    
-    if(tr.speed < 0)
-        tr.speed = -speed;
-    else
-        tr.speed = speed;
+    if (! TaskBase::startHook())
+        return false;
+    return true;
 }
-
 void Task::updateHook()
 {
-    base::MotionCommand2D mc;
-    mc.translation = 0;
-    mc.rotation    = 0;
+    TaskBase::updateHook();
 
-    driveSpeed = _forwardVelocity.get();
+    motionCommand.translation = 0;
+    motionCommand.rotation    = 0;
 
-    base::samples::RigidBodyState rbpose;
-    if(_pose.readNewest(rbpose) == RTT::NoData)
+    if( _robot_pose.readNewest( rbpose ) == RTT::NoData || 
+            _trajectory.readNewest( trajectories ) == RTT::NoData )
     {
 	if( !trajectories.empty() )
 	{
@@ -98,103 +56,65 @@ void Task::updateHook()
 	}
 
         trajectories.clear();
-        trFollower->removeTrajectory();
-        _motion_command.write(mc);
+        trajectoryFollower.removeTrajectory();
+        _motion_command.write( motionCommand );
+
         return;
     }
 
-    RTT::FlowStatus trajectory_status = _trajectory.readNewest(trajectories, false);
-    if (trajectory_status == RTT::NoData)
-    {
-	if( !trajectories.empty() )
-	{
-	    LOG_WARN_S << "Clearing old trajectories, since there is no data on the trajectories port.";
-	}
-
-        trajectories.clear();
-        trFollower->removeTrajectory();
-        _motion_command.write(mc);
-        return;
-    }
-    else if (trajectory_status == RTT::NewData)
-        {
-        if(!trajectories.empty())
-        {
-	    // got a new trajectory
-	    // take the first spline and pass it to the follower
-	    // afterwards remove it from the list of remaining 
-	    // splines
-            base::Trajectory curTr(trajectories.front());
-            overwriteTrajectorySpeed(curTr, driveSpeed);
-            trFollower->setNewTrajectory(curTr);
-            trajectories.erase(trajectories.begin());
-        }
-        else
-        {
-            trFollower->removeTrajectory();
-        }
-    }
-
-    Eigen::Vector2d motionCmd;    
-    TrajectoryFollower::FOLLOWER_STATUS status = 
-            trFollower->traverseTrajectory(motionCmd, base::Pose(rbpose.position, rbpose.orientation));
+    base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
+    FollowerStatus status = 
+            trajectoryFollower.traverseTrajectory( motionCommand, robotPose );
     
-    switch(status)
+    switch( status )
     {
-	case TrajectoryFollower::REACHED_TRAJECTORY_END:
-	    if(!trajectories.empty())
+        case TRAJECTORY_FINISHED:
+	    if( !trajectories.empty() )
 	    {
-		    if(state() != RUNNING)
-		        state(RUNNING);
-		    base::Trajectory curTr(trajectories.front());
-		    overwriteTrajectorySpeed(curTr, driveSpeed);
-		    trFollower->setNewTrajectory(curTr);
-		    trajectories.erase(trajectories.begin());
-	    } else
-	    {
-		if(state() != REACHED_THE_END)
-		    state(REACHED_THE_END);
+                trajectoryFollower.setNewTrajectory( trajectories.front(), 
+                      robotPose );
+                trajectories.erase( trajectories.begin() );
+	    } 
+            else if( state() != FINISHED_TRAJECTORY )
+            {
+                state( FINISHED_TRAJECTORY );
 	    }
-	    RTT::log(RTT::Info) << "End of the trajectory reached" << RTT::endlog();
 	    break;
-	case TrajectoryFollower::RUNNING:
-	    if(state() != RUNNING)
-		state(RUNNING);
+
+        case TRAJECTORY_FOLLOWING:
+	    if( state() != FOLLOWING_TRAJECTORY )
+            {
+		state( FOLLOWING_TRAJECTORY );
+            }
 	    break;
-	case TrajectoryFollower::INITIAL_STABILITY_FAILED:
-	    if(state() != INITIAL_STABILITY_FAILED)
-		state(INITIAL_STABILITY_FAILED);
-		RTT::log(RTT::Error) << "Trajectory follower failed" << RTT::endlog();
+
+        case INITIAL_STABILITY_FAILED:
+	    if( state() != STABILITY_FAILED )
+            {
+		state( STABILITY_FAILED );
+            }
 	    break;
+
+        default:
+            std::runtime_error("Unknown TrajectoryFollower state");
     }
     
-    mc.translation = motionCmd(0);
-    mc.rotation    = motionCmd(1);
-    
-    _motion_command.write(mc);
-    _currentCurvePoint.write(trFollower->getCurvePoint());
-    _poseError.write(trFollower->getControlError());
-    _currentPose.write(trFollower->getPose());
+    _motion_command.write( motionCommand );
+    _follower_data.write( trajectoryFollower.getData() );
 }
-
-// void Task::errorHook()
-// {
-// }
-
+void Task::errorHook()
+{
+    TaskBase::errorHook();
+}
 void Task::stopHook()
 {
-    if(trFollower)
-    {
-	delete trFollower;
-	trFollower = NULL;
-    }
-    
-    base::MotionCommand2D mc;
-    mc.translation = 0;
-    mc.rotation    = 0;
-    _motion_command.write(mc);
-}
-// void Task::cleanupHook()
-// {
-// }
+    motionCommand.translation = 0;
+    motionCommand.rotation    = 0;
+    _motion_command.write( motionCommand );
 
+    TaskBase::stopHook();
+}
+void Task::cleanupHook()
+{
+    TaskBase::cleanupHook();
+}

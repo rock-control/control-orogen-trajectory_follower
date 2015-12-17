@@ -9,81 +9,43 @@ using_library "base-lib"
 import_types_from "trajectory_follower/TrajectoryFollowerTypes.hpp"
 
 task_context "Task" do
-    property("controllerType", "int").
-            doc "selects chainedProportionalIntegral controller to be used. Values: 0: No orientation, 1: chainedProportional, 2: chainedProportionalIntegral"
 
-    property("forwardVelocity", "double", 0.0).
-            doc("If set greater than 0, the speed of the trajectory will be overwritten by this value")
+    # Properties
+    property("controller_type", "trajectory_follower/ControllerType").
+            doc "Use either CONTOLLER_NO_ORIENTATION(0) or CONTROLLER_CHAINED(1)"
 
-    property("rotationalVelocity", "double", 0.0).
-            doc "If > 0 this parameter can be used to limit the supported rotation of the 'no orientation' controller "
+    property("no_orientation_controller_config", "/trajectory_follower/NoOrientationControllerConfig").
+            doc "No orientation controller config"
 
-    property("pointTurnSpeed", "double", 0.2).
-            doc "point turn speed of the robot"
+    property("chained_controller_config", "/trajectory_follower/ChainedControllerConfig").
+            doc "Chained controller config"
 
-    property("forwardLength", "double", 0.1).
-            doc "moving the pose estimation point forward for no orientation controller. This value needs to be greater than 0."
-    
-    property("gpsCenterofRotationOffset", "double").
-            doc "Offset between GPS (w.r.t which Pose Estimator works) and approximated center of rotation"
+    property("pose_transform", "/base/Vector6d").
+            doc "Tranforms robot pose to center of rotation as x-forward, y-left and z-up coordinate system"
 
-    property("K0_nO", "double").
-            doc "K0 gain for no orientation controller"
-
-    property("K2_P", "double").
-            doc "K2 gain for P controller"
-
-    property("K3_P", "double").
-            doc "K3 gain for P controller"
-
-    property("K0_PI", "double").
-            doc "K0 gain for PI controller"
-
-    property("K2_PI", "double").
-            doc "K2 gain for PI controller"
-
-    property("K3_PI", "double").
-            doc "K3 gain for PI controller"
-
-    property("addPoseErrorY", "double", 0).
-            doc "Can be used to define the front of the robot (0 = X, Math::PI / 2.0 = Y)"
-            
-    property("noOrientationPointTurnUpperLimit", "double", Math::PI / 2.0).
-        doc "Can be used to define the upper limit to start a point turn for controller type 0"
-        
-    property("noOrientationPointTurnLowerLimit", "double", Math::PI / 8.0).
-        doc "Can be used to define the lower limit to stop the point turn for controller type 0"
-        
-    property("noOrientationRotationalVelocity", "double", 0.0).
-        doc "If greater than 0 the supported rotational velocity of controler type 0 will not exceed this limit"
-
+    # Input ports
     input_port("trajectory", "std::vector</base/Trajectory>").
         doc("Trajectory the robot should follow").
         needs_buffered_connection
 
-    input_port("pose", "/base/samples/RigidBodyState").
+    input_port("robot_pose", "/base/samples/RigidBodyState").
         doc "Position and orientation of the Robot"
 
-    output_port("motion_command", "base/MotionCommand2D").
+    # Output ports
+    output_port("motion_command", "base/commands/Motion2D").
         doc "Drive command that should steer the robot to the target Pose"
 
-    output_port("currentCurvePoint", "trajectory_follower/CurvePoint").
-    	doc "Corresponding point on the reference curve"
-    
-    output_port("currentPose", "trajectory_follower/RobotPose").
-    	doc "Current pose of the robot"
-
-    output_port("poseError", "trajectory_follower/TrajError").
+    output_port("follower_data", "trajectory_follower/FollowerData").
     	doc "Pose error calculated by NURBSCurve3D"
 
     # Runtime state that is emitted when we reach the end of the curve, to
     # announce it to the outside world
-    runtime_states :REACHED_THE_END
+    runtime_states :FINISHED_TRAJECTORY, :FOLLOWING_TRAJECTORY
 
     # Runtime error state entered when the initial stability test failed for a
     # particular trajectory. Note that the component might switch back to
     # runtime state if a new trajectory / new pose is received
-    error_states :INITIAL_STABILITY_FAILED
+    error_states :STABILITY_FAILED
 
     needs_configuration
     port_driven
