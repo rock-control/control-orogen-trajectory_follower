@@ -31,10 +31,7 @@ bool Task::configureHook()
 }
 bool Task::startHook()
 {
-    trajectoryFollower = TrajectoryFollower( _controller_type.value(),
-        _no_orientation_controller_config.value(),
-        _chained_controller_config.value(),
-        base::Pose( _pose_transform.value() ) );
+    trajectoryFollower = TrajectoryFollower( _follower_config.value() );
 
     if (! TaskBase::startHook())
         return false;
@@ -52,7 +49,8 @@ void Task::updateHook()
     {
 	if( !trajectories.empty() )
 	{
-	    LOG_WARN_S << "Clearing old trajectories, since there is no pose data.";
+	    LOG_WARN_S << "Clearing old trajectories, since there is no "
+                "trajectory or pose data.";
 	}
 
         trajectories.clear();
@@ -63,8 +61,8 @@ void Task::updateHook()
     }
 
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
-    FollowerStatus status = 
-            trajectoryFollower.traverseTrajectory( motionCommand, robotPose );
+    FollowerStatus status = trajectoryFollower.traverseTrajectory( 
+            motionCommand, robotPose );
     
     switch( status )
     {
@@ -75,15 +73,17 @@ void Task::updateHook()
                       robotPose );
                 trajectories.erase( trajectories.begin() );
 	    } 
-            else if( state() != FINISHED_TRAJECTORY )
+            else if( state() != FINISHED_TRAJECTORIES )
             {
-                state( FINISHED_TRAJECTORY );
+                LOG_INFO_S << "TrajectoryFollowerTask Finished Trajectories.";
+                state( FINISHED_TRAJECTORIES );
 	    }
 	    break;
 
         case TRAJECTORY_FOLLOWING:
 	    if( state() != FOLLOWING_TRAJECTORY )
             {
+                LOG_INFO_S << "TrajectoryFollowerTask Following Trajectory.";
 		state( FOLLOWING_TRAJECTORY );
             }
 	    break;
@@ -91,6 +91,7 @@ void Task::updateHook()
         case INITIAL_STABILITY_FAILED:
 	    if( state() != STABILITY_FAILED )
             {
+                LOG_ERROR_S << "TrajectoryFollowerTask Stability Failed.";
 		state( STABILITY_FAILED );
             }
 	    break;

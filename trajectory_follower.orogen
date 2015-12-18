@@ -11,17 +11,8 @@ import_types_from "trajectory_follower/TrajectoryFollowerTypes.hpp"
 task_context "Task" do
 
     # Properties
-    property("controller_type", "trajectory_follower/ControllerType").
-            doc "Use either CONTOLLER_NO_ORIENTATION(0) or CONTROLLER_CHAINED(1)"
-
-    property("no_orientation_controller_config", "/trajectory_follower/NoOrientationControllerConfig").
-            doc "No orientation controller config"
-
-    property("chained_controller_config", "/trajectory_follower/ChainedControllerConfig").
-            doc "Chained controller config"
-
-    property("pose_transform", "/base/Vector6d").
-            doc "Tranforms robot pose to center of rotation as x-forward, y-left and z-up coordinate system"
+    property("follower_config", "trajectory_follower/FollowerConfig" ).
+            doc "Combined follower config"
 
     # Input ports
     input_port("trajectory", "std::vector</base/Trajectory>").
@@ -38,9 +29,8 @@ task_context "Task" do
     output_port("follower_data", "trajectory_follower/FollowerData").
     	doc "Pose error calculated by NURBSCurve3D"
 
-    # Runtime state that is emitted when we reach the end of the curve, to
-    # announce it to the outside world
-    runtime_states :FINISHED_TRAJECTORY, :FOLLOWING_TRAJECTORY
+    # Runtime state for when trajectory finished or when actively following one
+    runtime_states :FINISHED_TRAJECTORIES, :FOLLOWING_TRAJECTORY
 
     # Runtime error state entered when the initial stability test failed for a
     # particular trajectory. Note that the component might switch back to
