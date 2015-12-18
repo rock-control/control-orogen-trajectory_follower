@@ -61,6 +61,20 @@ task_context "TurnVelocityToSteerAngleTask" do
     port_driven
 end
 
+task_context "TestSinTrajectoryTask" do
+    # Properties
+    property("amp", "double" )
+    property("freq", "double" )
+    property("length", "double" )
+
+    # Output ports
+    output_port("trajectory", "std/vector< base/Trajectory >" )
+
+    needs_configuration
+    port_driven
+end
+
+
 deployment "test_trajectory" do
     do_not_install
     trajectory_task = task("trajectory", "Task")
