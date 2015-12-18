@@ -41,6 +41,26 @@ task_context "Task" do
     port_driven
 end
 
+task_context "TurnVelocityToSteerAngleTask" do
+    # Properties
+    property("ackerman_ratio", "double", 0.5 ).
+            doc "Ackermann ratio"
+
+    property("wheel_base", "double" ).
+            doc "Wheel base of the vehicle"
+
+    # Input ports
+    input_port("motion_command_in", "base/commands/Motion2D").
+        doc "Motion command as forward velocity and turn velocity"
+
+    # Output ports
+    output_port("motion_command", "base/commands/Motion2D").
+        doc "Motion command as forward velocity and steering angle"
+
+    needs_configuration
+    port_driven
+end
+
 deployment "test_trajectory" do
     do_not_install
     trajectory_task = task("trajectory", "Task")
