@@ -1,0 +1,26 @@
+--- name:default
+# Combined follower config
+follower_config:
+  trajectoryConfig:
+    geometricResolution: 0.001
+    trajectoryFinishDistance: 0.1
+  poseTransform:
+    data:
+    - 0.25
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+  controllerType: :CONTROLLER_NO_ORIENTATION
+  noOrientationControllerConfig:
+    l1: 0.5
+    K0: 0.5
+    maxRotationalVelocity: 1.0
+    pointTurnStart: 1.5
+    pointTurnEnd: 1.0
+    pointTurnVelocity: 0.2
+  chainedControllerConfig:
+    K0: 0.0
+    K2: 1.0
+    K3: 1.0
