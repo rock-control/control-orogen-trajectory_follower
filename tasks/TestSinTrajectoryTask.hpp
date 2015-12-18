@@ -4,6 +4,7 @@
 #define TRAJECTORY_FOLLOWER_TESTSINTRAJECTORYTASK_TASK_HPP
 
 #include "trajectory_follower/TestSinTrajectoryTaskBase.hpp"
+#include <base/Trajectory.hpp>
 
 namespace trajectory_follower{
 
@@ -25,7 +26,8 @@ namespace trajectory_follower{
     {
 	friend class TestSinTrajectoryTaskBase;
     protected:
-
+        double a, f, l;
+        std::vector< base::Trajectory > trajs;
 
 
     public:
