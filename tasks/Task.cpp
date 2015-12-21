@@ -44,8 +44,7 @@ void Task::updateHook()
     motionCommand.translation = 0;
     motionCommand.rotation    = 0;
 
-    if( _robot_pose.readNewest( rbpose ) == RTT::NoData || 
-            _trajectory.readNewest( trajectories ) == RTT::NoData )
+    if( _robot_pose.readNewest( rbpose ) == RTT::NoData )
     {
 	if( !trajectories.empty() )
 	{
@@ -60,17 +59,38 @@ void Task::updateHook()
         return;
     }
 
-    base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
-    FollowerStatus status = trajectoryFollower.traverseTrajectory( 
-            motionCommand, robotPose );
+    std::vector< base::Trajectory > tempTraj;
+    RTT::FlowStatus trajPortStatus = _trajectory.readNewest( tempTraj );
+    if( trajPortStatus == RTT::NoData )
+    {
+	if( !trajectories.empty() )
+	{
+	    LOG_WARN_S << "Clearing old trajectories, since there is no "
+                "trajectory or pose data.";
+	}
+
+        trajectories.clear();
+        trajectoryFollower.removeTrajectory();
+        _motion_command.write( motionCommand );
+
+        return;
+    } 
+    else if( trajPortStatus == RTT::NewData )
+    {
+        trajectories = tempTraj;
+        trajectoryFollower.removeTrajectory();
+    }
+
+    FollowerStatus followerStatus = trajectoryFollower.traverseTrajectory( 
+            motionCommand, rbpose );
     
-    switch( status )
+    switch( followerStatus )
     {
         case TRAJECTORY_FINISHED:
 	    if( !trajectories.empty() )
 	    {
                 trajectoryFollower.setNewTrajectory( trajectories.front(), 
-                      robotPose );
+                      rbpose );
                 trajectories.erase( trajectories.begin() );
 	    } 
             else if( state() != FINISHED_TRAJECTORIES )
