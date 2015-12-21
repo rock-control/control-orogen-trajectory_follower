@@ -29,27 +29,33 @@ bool TestSinTrajectoryTask::configureHook()
     a = _amp.value();
     f = _freq.value();
     l = _length.value();
+    h = _height.value();
+    double aLast;
 
     trajs.resize( 2 );
-    std::vector< double > points;
+    std::vector< double > pf;
     for( double t = 0; t <= l; t += l/100.0 )
     {
-        points.push_back( a * sin( f * t ) );
-        points.push_back( 0 );
-        points.push_back( 0 );
-    }
+        pf.push_back( t );
+        pf.push_back( a * cos( f * 2.0 * M_PI * t ) );
+        pf.push_back( h );
 
-    trajs[0].spline.interpolate( points );
+        aLast = a * cos( f * 2.0 * M_PI * t ) - a;
+    }
+    trajs[0].spline.interpolate( pf );
     trajs[0].speed = 0.2;
-    points.clear();
+
+    std::vector< double > pb;
     for( double t = l; t >= 0; t -= l/100.0 )
     {
-        points.push_back( a * sin( f * t ) );
-        points.push_back( 0 );
-        points.push_back( 0 );
+        pb.push_back( t );
+        pb.push_back( aLast - a * cos( f * 2.0 * M_PI * t ) );
+        pb.push_back( h );
     }
-    trajs[1].spline.interpolate( points );
-    trajs[0].speed = -0.2;
+    trajs[1].spline.interpolate( pb );
+    trajs[1].speed = -0.2;
+
+    written = false;
 
     if (! TestSinTrajectoryTaskBase::configureHook())
         return false;
@@ -61,11 +67,15 @@ bool TestSinTrajectoryTask::startHook()
         return false;
     return true;
 
-    _trajectory.write( trajs );
 }
 void TestSinTrajectoryTask::updateHook()
 {
     TestSinTrajectoryTaskBase::updateHook();
+    if( !written ) 
+    {
+        _trajectory.write( trajs );
+        written = true;
+    }
 }
 void TestSinTrajectoryTask::errorHook()
 {

@@ -26,8 +26,9 @@ namespace trajectory_follower{
     {
 	friend class TestSinTrajectoryTaskBase;
     protected:
-        double a, f, l;
+        double a, f, l, h;
         std::vector< base::Trajectory > trajs;
+        bool written;
 
 
     public:
