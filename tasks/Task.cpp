@@ -43,9 +43,8 @@ void Task::updateHook()
 
     motionCommand.translation = 0;
     motionCommand.rotation    = 0;
-
-    if( _robot_pose.readNewest( rbpose ) == RTT::NoData || 
-            _trajectory.readNewest( trajectories ) == RTT::NoData )
+    
+    if( _robot_pose.readNewest( rbpose ) == RTT::NoData)
     {
 	if( !trajectories.empty() )
 	{
@@ -53,14 +52,19 @@ void Task::updateHook()
                 "trajectory or pose data.";
 	}
 
-        trajectories.clear();
         trajectoryFollower.removeTrajectory();
         _motion_command.write( motionCommand );
 
         return;
     }
-
+    
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
+    
+    if (_trajectory.readNewest( trajectories, false ) == RTT::NewData && !trajectories.empty()) {
+	trajectoryFollower.setNewTrajectory( trajectories.front(), robotPose );
+        trajectories.erase( trajectories.begin() );
+    }
+
     FollowerStatus status = trajectoryFollower.traverseTrajectory( 
             motionCommand, robotPose );
     
