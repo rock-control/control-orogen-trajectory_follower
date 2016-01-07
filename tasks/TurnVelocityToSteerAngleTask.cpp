@@ -44,9 +44,12 @@ void TurnVelocityToSteerAngleTask::updateHook()
     base::commands::Motion2D mc;
     if( _motion_command_in.readNewest( mc ) == RTT::NewData )
     {
-        mc.rotation = atan( ackermanRatio * wheelBase / mc.translation 
-                * mc.rotation );
-
+        if(fabs(mc.rotation) >  0.0000001) {
+            mc.rotation = atan( wheelBase * ackermanRatio / mc.translation * mc.rotation );
+        } else {
+            mc.rotation = 0;
+        }
+        
         _motion_command.write( mc );
     }
 }
