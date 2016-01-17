@@ -2,6 +2,7 @@
 
 #include "Task.hpp"
 #include <base/Logging.hpp>
+#include <random>
 
 using namespace trajectory_follower;
 
@@ -40,6 +41,9 @@ bool Task::startHook()
 void Task::updateHook()
 {
     TaskBase::updateHook();
+    
+    base::commands::Motion2D oldMotionCommand;
+    oldMotionCommand = motionCommand;
 
     motionCommand.translation = 0;
     motionCommand.rotation    = 0;
@@ -58,11 +62,23 @@ void Task::updateHook()
         return;
     }
     
+    /*std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_real_distribution<double> randPositionOffset(0.25, 1.5);
+    std::uniform_int_distribution<int> randOrientationOffset(5, 25);
+    std::uniform_int_distribution<int> randBool(1, 1);*/
+
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
+    /*double x = randPositionOffset(mt), y = randPositionOffset(mt);
+    int rot = randOrientationOffset(mt);
+    robotPose.position.x() += randBool(mt) == 1 ? -x : x;
+    robotPose.position.y() += randBool(mt) == 1 ? -y : y;
+    robotPose.orientation *= Eigen::Quaterniond(Eigen::AngleAxisd(base::Angle::deg2Rad(randBool(mt) == 1 ? -rot : rot), Eigen::Vector3d::UnitZ()));*/
     
     if (_trajectory.readNewest( trajectories, false ) == RTT::NewData && !trajectories.empty()) {
 	trajectoryFollower.setNewTrajectory( trajectories.front(), robotPose );
         trajectories.erase( trajectories.begin() );
+	_trajectories.write(trajectories);
     }
 
     FollowerStatus status = trajectoryFollower.traverseTrajectory( 
@@ -106,11 +122,43 @@ void Task::updateHook()
     
     _motion_command.write( motionCommand );
     _follower_data.write( trajectoryFollower.getData() );
+    base::samples::RigidBodyState splineReferencePose;
+    splineReferencePose.position = trajectoryFollower.getData().referencePose.position;
+    splineReferencePose.orientation = trajectoryFollower.getData().referencePose.orientation;
+    _spline_reference_pose.write( splineReferencePose );
+    
+    base::Pose currentPose;
+    currentPose.fromTransform( robotPose.toTransform() * base::Pose( _follower_config.value().poseTransform ).toTransform() );
+    base::samples::RigidBodyState poseTransformed;
+    poseTransformed.position = currentPose.position;
+    poseTransformed.orientation = currentPose.orientation;
+    _transformed_pose.write(poseTransformed);
+    
+    base::samples::RigidBodyState movementDirection;
+    movementDirection.position = currentPose.position;
+    movementDirection.orientation = Eigen::Quaterniond(Eigen::AngleAxisd(atan2(trajectoryFollower.getMovementVector().y(), trajectoryFollower.getMovementVector().x()), Eigen::Vector3d::UnitZ()));
+    _movement_direction.write(movementDirection);
+    
+    std::vector<base::Trajectory> trajectorySegments;
+    trajectorySegments.push_back(trajectoryFollower.getTrajectorySegment());
+    _trajectory_segement.write(trajectorySegments);
+    
+    base::samples::RigidBodyState mCommand;
+    mCommand.position = currentPose.position;
+    mCommand.orientation = Eigen::Quaterniond(Eigen::AngleAxisd(motionCommand.rotation, Eigen::Vector3d::UnitZ()));
+    _motion_command_viz.write(mCommand);
+    
+    base::samples::RigidBodyState mCommandDiff;
+    mCommandDiff.position = currentPose.position;
+    mCommandDiff.orientation = Eigen::Quaterniond(Eigen::AngleAxisd(currentPose.getYaw() + (motionCommand.rotation - oldMotionCommand.rotation), Eigen::Vector3d::UnitZ()));
+    _motion_command_diff_viz.write(mCommandDiff);
 }
+
 void Task::errorHook()
 {
     TaskBase::errorHook();
 }
+
 void Task::stopHook()
 {
     motionCommand.translation = 0;
@@ -119,6 +167,7 @@ void Task::stopHook()
 
     TaskBase::stopHook();
 }
+
 void Task::cleanupHook()
 {
     TaskBase::cleanupHook();
