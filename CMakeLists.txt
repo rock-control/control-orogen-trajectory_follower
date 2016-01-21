@@ -7,4 +7,3 @@ INCLUDE(trajectory_followerBase)
 
 # FIND_PACKAGE(KDL)
 # FIND_PACKAGE(OCL)
-

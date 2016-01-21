@@ -61,19 +61,8 @@ void Task::updateHook()
 
         return;
     }
-    
-    /*std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_real_distribution<double> randPositionOffset(0.25, 1.5);
-    std::uniform_int_distribution<int> randOrientationOffset(5, 25);
-    std::uniform_int_distribution<int> randBool(1, 1);*/
 
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
-    /*double x = randPositionOffset(mt), y = randPositionOffset(mt);
-    int rot = randOrientationOffset(mt);
-    robotPose.position.x() += randBool(mt) == 1 ? -x : x;
-    robotPose.position.y() += randBool(mt) == 1 ? -y : y;
-    robotPose.orientation *= Eigen::Quaterniond(Eigen::AngleAxisd(base::Angle::deg2Rad(randBool(mt) == 1 ? -rot : rot), Eigen::Vector3d::UnitZ()));*/
     
     if (_trajectory.readNewest( trajectories, false ) == RTT::NewData && !trajectories.empty()) {
 	trajectoryFollower.setNewTrajectory( trajectories.front(), robotPose );
@@ -136,11 +125,11 @@ void Task::updateHook()
     
     base::samples::RigidBodyState movementDirection;
     movementDirection.position = currentPose.position;
-    movementDirection.orientation = Eigen::Quaterniond(Eigen::AngleAxisd(atan2(trajectoryFollower.getMovementVector().y(), trajectoryFollower.getMovementVector().x()), Eigen::Vector3d::UnitZ()));
+    movementDirection.orientation = Eigen::Quaterniond(Eigen::AngleAxisd(atan2(trajectoryFollower.getData().movementVector.y(), trajectoryFollower.getData().movementVector.x()), Eigen::Vector3d::UnitZ()));
     _movement_direction.write(movementDirection);
     
     std::vector<base::Trajectory> trajectorySegments;
-    trajectorySegments.push_back(trajectoryFollower.getTrajectorySegment());
+    trajectorySegments.push_back(trajectoryFollower.getData().trajectorySegment);
     _trajectory_segement.write(trajectorySegments);
     
     base::samples::RigidBodyState mCommand;
