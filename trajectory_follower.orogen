@@ -33,7 +33,6 @@ task_context "Task" do
     output_port("transformed_pose", "/base/samples/RigidBodyState")
     output_port("spline_reference_pose", "/base/samples/RigidBodyState")
     output_port("movement_direction", "/base/samples/RigidBodyState")
-    output_port("trajectory_segement", "std::vector</base/Trajectory>")
     output_port("motion_command_viz", "/base/samples/RigidBodyState")
     output_port("motion_command_diff_viz", "/base/samples/RigidBodyState")
 
@@ -56,6 +55,9 @@ task_context "TurnVelocityToSteerAngleTask" do
 
     property("wheel_base", "double" ).
             doc "Wheel base of the vehicle"
+          
+    property("max_steering_angle", "double", 0.523).
+	doc "Steering angle upper limit in radians"
 
     # Input ports
     input_port("motion_command_in", "base/commands/Motion2D").

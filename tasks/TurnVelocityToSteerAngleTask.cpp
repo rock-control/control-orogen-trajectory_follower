@@ -19,7 +19,6 @@ TurnVelocityToSteerAngleTask::~TurnVelocityToSteerAngleTask()
 }
 
 
-
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See TurnVelocityToSteerAngleTask.hpp for more detailed
 // documentation about them.
@@ -32,12 +31,14 @@ bool TurnVelocityToSteerAngleTask::configureHook()
         return false;
     return true;
 }
+
 bool TurnVelocityToSteerAngleTask::startHook()
 {
     if (! TurnVelocityToSteerAngleTaskBase::startHook())
         return false;
     return true;
 }
+
 void TurnVelocityToSteerAngleTask::updateHook()
 {
     TurnVelocityToSteerAngleTaskBase::updateHook();
@@ -46,6 +47,11 @@ void TurnVelocityToSteerAngleTask::updateHook()
     {
         if(fabs(mc.rotation) >  0.0000001) {
             mc.rotation = atan( wheelBase * ackermanRatio / mc.translation * mc.rotation );
+	    //mc.rotation = std::atan2(mc.translation * mc.rotation, wheelBase * ackermanRatio);
+	    if (mc.rotation > _max_steering_angle.value())
+		mc.rotation = _max_steering_angle.value();
+	    else if (mc.rotation < -_max_steering_angle.value())
+		mc.rotation = -_max_steering_angle.value();
         } else {
             mc.rotation = 0;
         }
@@ -53,14 +59,17 @@ void TurnVelocityToSteerAngleTask::updateHook()
         _motion_command.write( mc );
     }
 }
+
 void TurnVelocityToSteerAngleTask::errorHook()
 {
     TurnVelocityToSteerAngleTaskBase::errorHook();
 }
+
 void TurnVelocityToSteerAngleTask::stopHook()
 {
     TurnVelocityToSteerAngleTaskBase::stopHook();
 }
+
 void TurnVelocityToSteerAngleTask::cleanupHook()
 {
     TurnVelocityToSteerAngleTaskBase::cleanupHook();
