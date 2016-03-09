@@ -30,7 +30,7 @@ task_context "Task" do
     	doc "Pose error calculated by NURBSCurve3D"
 
     # Runtime state for when trajectory finished or when actively following one
-    runtime_states :FINISHED_TRAJECTORIES, :FOLLOWING_TRAJECTORY
+    runtime_states :FINISHED_TRAJECTORIES, :FOLLOWING_TRAJECTORY, :TURN_ON_SPOT
 
     # Runtime error state entered when the initial stability test failed for a
     # particular trajectory. Note that the component might switch back to

@@ -95,6 +95,14 @@ void Task::updateHook()
             state( FOLLOWING_TRAJECTORY );
         }
         break;
+        
+    case trajectory_follower::TURN_ON_SPOT:
+        if( state() != TURN_ON_SPOT )
+        {
+            LOG_INFO_S << "TrajectoryFollowerTask Following Trajectory.";
+            state( TURN_ON_SPOT );
+        }
+        break;
 
     case INITIAL_STABILITY_FAILED:
         if( state() != STABILITY_FAILED )
