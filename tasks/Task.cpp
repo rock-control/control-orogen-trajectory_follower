@@ -42,11 +42,9 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
 
-    base::commands::Motion2D oldMotionCommand;
-    oldMotionCommand = motionCommand;
-
     motionCommand.translation = 0;
     motionCommand.rotation    = 0;
+    motionCommand.heading     = 0;
 
     if( _robot_pose.readNewest( rbpose ) == RTT::NoData)
     {
@@ -57,58 +55,69 @@ void Task::updateHook()
         }
 
         trajectoryFollower.removeTrajectory();
-        _motion_command.write( motionCommand );
+        _motion_command.write(motionCommand.toBaseMotion2D());
 
         return;
     }
 
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
 
-    if (_trajectory.readNewest( trajectories, false ) == RTT::NewData && !trajectories.empty()) {
-        trajectoryFollower.setNewTrajectory( trajectories.front(), robotPose );
-        trajectories.erase( trajectories.begin() );
+    if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
+        trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
+        trajectories.erase(trajectories.begin());
+    }
+    
+    SubTrajectory subTrajectory;
+    if (_holonomic_trajectory.readNewest(subTrajectory, false) == RTT::NewData) {
+        trajectoryFollower.setNewTrajectory(subTrajectory, robotPose);
     }
 
-    FollowerStatus status = trajectoryFollower.traverseTrajectory(
-                                motionCommand, robotPose );
+    FollowerStatus status = trajectoryFollower.traverseTrajectory(motionCommand, robotPose);
 
-    switch( status )
+    switch(status)
     {
     case TRAJECTORY_FINISHED:
-        if( !trajectories.empty() )
+        if(!trajectories.empty())
         {
-            trajectoryFollower.setNewTrajectory( trajectories.front(),
-                                                 robotPose );
-            trajectories.erase( trajectories.begin() );
+            trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
+            trajectories.erase(trajectories.begin());
         }
-        else if( state() != FINISHED_TRAJECTORIES )
+        else if(state() != FINISHED_TRAJECTORIES)
         {
-            LOG_INFO_S << "TrajectoryFollowerTask Finished Trajectories.";
-            state( FINISHED_TRAJECTORIES );
+            LOG_INFO_S << "update TrajectoryFollowerTask state to FINISHED_TRAJECTORIES.";
+            state(FINISHED_TRAJECTORIES);
         }
         break;
 
     case TRAJECTORY_FOLLOWING:
-        if( state() != FOLLOWING_TRAJECTORY )
+        if(state() != FOLLOWING_TRAJECTORY)
         {
-            LOG_INFO_S << "TrajectoryFollowerTask Following Trajectory.";
-            state( FOLLOWING_TRAJECTORY );
+            LOG_INFO_S << "update TrajectoryFollowerTask state to FOLLOWING_TRAJECTORY.";
+            state(FOLLOWING_TRAJECTORY);
         }
         break;
         
-    case trajectory_follower::TURN_ON_SPOT:
-        if( state() != TURN_ON_SPOT )
+    case EXEC_TURN_ON_SPOT:
+        if(state() != TURN_ON_SPOT)
         {
-            LOG_INFO_S << "TrajectoryFollowerTask Following Trajectory.";
-            state( TURN_ON_SPOT );
+            LOG_INFO_S << "update TrajectoryFollowerTask state to TURN_ON_SPOT.";
+            state(TURN_ON_SPOT);
+        }
+        break;
+        
+    case EXEC_LATERAL:
+        if(state() != LATERAL)
+        {
+            LOG_INFO_S << "update TrajectoryFollowerTask state to LATERAL.";
+            state(LATERAL);
         }
         break;
 
     case INITIAL_STABILITY_FAILED:
-        if( state() != STABILITY_FAILED )
+        if(state() != STABILITY_FAILED)
         {
-            LOG_ERROR_S << "TrajectoryFollowerTask Stability Failed.";
-            state( STABILITY_FAILED );
+            LOG_ERROR_S << "update TrajectoryFollowerTask state to STABILITY_FAILED.";
+            state(STABILITY_FAILED);
         }
         break;
 
@@ -117,7 +126,7 @@ void Task::updateHook()
     }
     
     _follower_data.write(trajectoryFollower.getData());
-    _motion_command.write( motionCommand );
+    _motion_command.write(motionCommand.toBaseMotion2D());
 }
 
 void Task::errorHook()
@@ -129,7 +138,8 @@ void Task::stopHook()
 {
     motionCommand.translation = 0;
     motionCommand.rotation    = 0;
-    _motion_command.write( motionCommand );
+    motionCommand.heading     = 0;
+    _motion_command.write(motionCommand.toBaseMotion2D());
 
     TaskBase::stopHook();
 }

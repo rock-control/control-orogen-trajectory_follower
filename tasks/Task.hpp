@@ -6,6 +6,7 @@
 #include "trajectory_follower/TaskBase.hpp"
 #include <trajectory_follower/TrajectoryFollower.hpp>
 #include <trajectory_follower/TrajectoryFollowerTypes.hpp>
+#include <trajectory_follower/Motion2D.hpp>
 
 namespace trajectory_follower{
 
@@ -29,7 +30,7 @@ namespace trajectory_follower{
     protected:
 	std::vector< base::Trajectory > trajectories;
 	TrajectoryFollower trajectoryFollower;
-        base::commands::Motion2D motionCommand;
+        Motion2D motionCommand;
         base::samples::RigidBodyState rbpose;
 
     public:
