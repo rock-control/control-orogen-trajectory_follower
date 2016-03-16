@@ -88,7 +88,6 @@ void Task::updateHook()
             state(FINISHED_TRAJECTORIES);
         }
         break;
-
     case TRAJECTORY_FOLLOWING:
         if(state() != FOLLOWING_TRAJECTORY)
         {
@@ -96,7 +95,13 @@ void Task::updateHook()
             state(FOLLOWING_TRAJECTORY);
         }
         break;
-        
+    case SLAM_POSE_CHECK_FAILED:
+        if(state() != SLAM_POSE_INVALID)
+        {
+            LOG_INFO_S << "update TrajectoryFollowerTask state to SLAM_POSE_INVALID.";
+            state(SLAM_POSE_INVALID);
+        }
+        break;
     case EXEC_TURN_ON_SPOT:
         if(state() != TURN_ON_SPOT)
         {
@@ -104,7 +109,6 @@ void Task::updateHook()
             state(TURN_ON_SPOT);
         }
         break;
-        
     case EXEC_LATERAL:
         if(state() != LATERAL)
         {
@@ -112,7 +116,6 @@ void Task::updateHook()
             state(LATERAL);
         }
         break;
-
     case INITIAL_STABILITY_FAILED:
         if(state() != STABILITY_FAILED)
         {
@@ -120,7 +123,6 @@ void Task::updateHook()
             state(STABILITY_FAILED);
         }
         break;
-
     default:
         std::runtime_error("Unknown TrajectoryFollower state");
     }
