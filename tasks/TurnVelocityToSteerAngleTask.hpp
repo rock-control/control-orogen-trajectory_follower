@@ -1,16 +1,14 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.hpp */
 
-#ifndef TRAJECTORY_FOLLOWER_TASK_TASK_HPP
-#define TRAJECTORY_FOLLOWER_TASK_TASK_HPP
+#ifndef TRAJECTORY_FOLLOWER_TURNVELOCITYTOSTEERANGLETASK_TASK_HPP
+#define TRAJECTORY_FOLLOWER_TURNVELOCITYTOSTEERANGLETASK_TASK_HPP
 
-#include "trajectory_follower/TaskBase.hpp"
-#include <trajectory_follower/TrajectoryFollower.hpp>
-#include <trajectory_follower/TrajectoryFollowerTypes.hpp>
-#include <trajectory_follower/Motion2D.hpp>
+#include "trajectory_follower/TurnVelocityToSteerAngleTaskBase.hpp"
+#include <base/commands/Motion2D.hpp>
 
 namespace trajectory_follower{
 
-    /*! \class Task
+    /*! \class TurnVelocityToSteerAngleTask
      * \brief The task context provides and requires services. It uses an ExecutionEngine to perform its functions.
      * Essential interfaces are operations, data flow ports and properties. These interfaces have been defined using the oroGen specification.
      * In order to modify the interfaces you should (re)use oroGen and rely on the associated workflow.
@@ -19,37 +17,37 @@ namespace trajectory_follower{
      * The name of a TaskContext is primarily defined via:
      \verbatim
      deployment 'deployment_name'
-         task('custom_task_name','trajectory_follower::Task')
+         task('custom_task_name','trajectory_follower::TurnVelocityToSteerAngleTask')
      end
      \endverbatim
      *  It can be dynamically adapted when the deployment is called with a prefix argument.
      */
-    class Task : public TaskBase
+    class TurnVelocityToSteerAngleTask : public TurnVelocityToSteerAngleTaskBase
     {
-	friend class TaskBase;
+	friend class TurnVelocityToSteerAngleTaskBase;
     protected:
-	std::vector< base::Trajectory > trajectories;
-	TrajectoryFollower trajectoryFollower;
-        Motion2D motionCommand;
-        base::samples::RigidBodyState rbpose;
+
+        double ackermanRatio, wheelBase;
+
+
 
     public:
-        /** TaskContext constructor for Task
+        /** TaskContext constructor for TurnVelocityToSteerAngleTask
          * \param name Name of the task. This name needs to be unique to make it identifiable via nameservices.
          * \param initial_state The initial TaskState of the TaskContext. Default is Stopped state.
          */
-        Task(std::string const& name = "trajectory_follower::Task");
+        TurnVelocityToSteerAngleTask(std::string const& name = "trajectory_follower::TurnVelocityToSteerAngleTask");
 
-        /** TaskContext constructor for Task
+        /** TaskContext constructor for TurnVelocityToSteerAngleTask
          * \param name Name of the task. This name needs to be unique to make it identifiable for nameservices.
          * \param engine The RTT Execution engine to be used for this task, which serialises the execution of all commands, programs, state machines and incoming events for a task.
          * 
          */
-        Task(std::string const& name, RTT::ExecutionEngine* engine);
+        TurnVelocityToSteerAngleTask(std::string const& name, RTT::ExecutionEngine* engine);
 
-        /** Default deconstructor of Task
+        /** Default deconstructor of TurnVelocityToSteerAngleTask
          */
-	~Task();
+	~TurnVelocityToSteerAngleTask();
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
@@ -112,3 +110,4 @@ namespace trajectory_follower{
 }
 
 #endif
+
