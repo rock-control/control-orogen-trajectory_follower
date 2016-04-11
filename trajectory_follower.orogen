@@ -10,7 +10,6 @@ import_types_from "trajectory_follower/TrajectoryFollowerTypes.hpp"
 import_types_from "trajectory_follower/SubTrajectory.hpp"
 
 task_context "Task" do
-
     # Properties
     property("follower_config", "trajectory_follower/FollowerConfig" ).
             doc "Combined follower config"
@@ -66,6 +65,21 @@ task_context "TurnVelocityToSteerAngleTask" do
     needs_configuration
     port_driven
 end
+
+task_context "TestSinTrajectoryTask" do
+    # Properties
+    property("amp", "double" )
+    property("freq", "double" )
+    property("length", "double" )
+    property("height", "double" )
+
+    # Output ports
+    output_port("trajectory", "std/vector< base/Trajectory >" )
+
+    needs_configuration
+    periodic 1.0
+end
+
 
 deployment "test_trajectory" do
     do_not_install

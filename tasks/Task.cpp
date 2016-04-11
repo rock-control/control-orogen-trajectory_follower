@@ -46,87 +46,84 @@ void Task::updateHook()
     motionCommand.rotation    = 0;
     motionCommand.heading     = 0;
 
-    if( _robot_pose.readNewest( rbpose ) == RTT::NoData)
+    if( _robot_pose.readNewest( rbpose ) == RTT::NoData )
     {
-        if( !trajectories.empty() )
-        {
-            LOG_WARN_S << "Clearing old trajectories, since there is no "
-                       "trajectory or pose data.";
-        }
+	if( !trajectories.empty() )
+	{
+	    LOG_WARN_S << "Clearing old trajectories, since there is no "
+                "trajectory or pose data.";
+	}
 
+        trajectories.clear();
         trajectoryFollower.removeTrajectory();
         _motion_command.write(motionCommand.toBaseMotion2D());
 
         return;
     }
 
-    base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
-
-    if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
-        trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
-        trajectories.erase(trajectories.begin());
-    }
-    
-    SubTrajectory subTrajectory;
-    if (_holonomic_trajectory.readNewest(subTrajectory, false) == RTT::NewData) {
-        trajectoryFollower.setNewTrajectory(subTrajectory, robotPose);
-    }
-
-    FollowerStatus status = trajectoryFollower.traverseTrajectory(motionCommand, robotPose);
-
-    switch(status)
+    std::vector< base::Trajectory > tempTraj;
+    RTT::FlowStatus trajPortStatus = _trajectory.readNewest( tempTraj );
+    if( trajPortStatus == RTT::NoData )
     {
-    case TRAJECTORY_FINISHED:
-        if(!trajectories.empty())
-        {
-            trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
-            trajectories.erase(trajectories.begin());
-        }
-        else if(state() != FINISHED_TRAJECTORIES)
-        {
-            LOG_INFO_S << "update TrajectoryFollowerTask state to FINISHED_TRAJECTORIES.";
-            state(FINISHED_TRAJECTORIES);
-        }
-        break;
+	if( !trajectories.empty() )
+	{
+	    LOG_WARN_S << "Clearing old trajectories, since there is no "
+                "trajectory or pose data.";
+	}
 
-    case TRAJECTORY_FOLLOWING:
-        if(state() != FOLLOWING_TRAJECTORY)
-        {
-            LOG_INFO_S << "update TrajectoryFollowerTask state to FOLLOWING_TRAJECTORY.";
-            state(FOLLOWING_TRAJECTORY);
-        }
-        break;
-        
-    case EXEC_TURN_ON_SPOT:
-        if(state() != TURN_ON_SPOT)
-        {
-            LOG_INFO_S << "update TrajectoryFollowerTask state to TURN_ON_SPOT.";
-            state(TURN_ON_SPOT);
-        }
-        break;
-        
-    case EXEC_LATERAL:
-        if(state() != LATERAL)
-        {
-            LOG_INFO_S << "update TrajectoryFollowerTask state to LATERAL.";
-            state(LATERAL);
-        }
-        break;
+        trajectories.clear();
+        trajectoryFollower.removeTrajectory();
+        _motion_command.write( motionCommand );
 
-    case INITIAL_STABILITY_FAILED:
-        if(state() != STABILITY_FAILED)
-        {
-            LOG_ERROR_S << "update TrajectoryFollowerTask state to STABILITY_FAILED.";
-            state(STABILITY_FAILED);
-        }
-        break;
+        return;
+    } 
+    else if( trajPortStatus == RTT::NewData )
+    {
+        trajectories = tempTraj;
+        trajectoryFollower.removeTrajectory();
+    }
 
-    default:
-        std::runtime_error("Unknown TrajectoryFollower state");
+    FollowerStatus followerStatus = trajectoryFollower.traverseTrajectory( 
+            motionCommand, rbpose );
+    
+    switch( followerStatus )
+    {
+        case TRAJECTORY_FINISHED:
+	    if( !trajectories.empty() )
+	    {
+                trajectoryFollower.setNewTrajectory( trajectories.front(), 
+                      rbpose );
+                trajectories.erase( trajectories.begin() );
+	    } 
+            else if( state() != FINISHED_TRAJECTORIES )
+            {
+                LOG_INFO_S << "TrajectoryFollowerTask Finished Trajectories.";
+                state( FINISHED_TRAJECTORIES );
+	    }
+	    break;
+
+        case TRAJECTORY_FOLLOWING:
+	    if( state() != FOLLOWING_TRAJECTORY )
+            {
+                LOG_INFO_S << "TrajectoryFollowerTask Following Trajectory.";
+		state( FOLLOWING_TRAJECTORY );
+            }
+	    break;
+
+        case INITIAL_STABILITY_FAILED:
+	    if( state() != STABILITY_FAILED )
+            {
+                LOG_ERROR_S << "TrajectoryFollowerTask Stability Failed.";
+		state( STABILITY_FAILED );
+            }
+	    break;
+
+        default:
+            std::runtime_error("Unknown TrajectoryFollower state");
     }
     
-    _follower_data.write(trajectoryFollower.getData());
-    _motion_command.write(motionCommand.toBaseMotion2D());
+    _motion_command.write( motionCommand );
+    _follower_data.write( trajectoryFollower.getData() );
 }
 
 void Task::errorHook()
@@ -138,8 +135,7 @@ void Task::stopHook()
 {
     motionCommand.translation = 0;
     motionCommand.rotation    = 0;
-    motionCommand.heading     = 0;
-    _motion_command.write(motionCommand.toBaseMotion2D());
+    _motion_command.write( motionCommand );
 
     TaskBase::stopHook();
 }
