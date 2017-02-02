@@ -32,6 +32,10 @@ namespace trajectory_follower{
 	TrajectoryFollower trajectoryFollower;
         Motion2D motionCommand;
         base::samples::RigidBodyState rbpose;
+        States new_state;
+        States current_state;
+
+        std::string printState(const States& state);
 
     public:
         /** TaskContext constructor for Task
