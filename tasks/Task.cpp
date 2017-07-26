@@ -1,7 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "Task.hpp"
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <random>
 
 using namespace trajectory_follower;
@@ -127,7 +127,9 @@ void Task::updateHook()
         break;
     case INITIAL_STABILITY_FAILED:
         if(current_state != new_state)
+        {
             LOG_ERROR_S << "update TrajectoryFollowerTask state to STABILITY_FAILED.";
+        }
         new_state = STABILITY_FAILED;
         break;
     default:
