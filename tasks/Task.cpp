@@ -87,8 +87,10 @@ void Task::updateHook()
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
 
     if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
-        trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
-        trajectories.erase(trajectories.begin());
+        if(!trajectories.front().spline.isSingleton()){ //check if spline is just a point
+            trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
+            trajectories.erase(trajectories.begin());
+        }
     }
     
     SubTrajectory subTrajectory;
@@ -101,7 +103,7 @@ void Task::updateHook()
     switch(status)
     {
     case TRAJECTORY_FINISHED:
-        if(!trajectories.empty())
+        if(!trajectories.empty() && !trajectories.front().spline.isSingleton())
         {
             trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
             trajectories.erase(trajectories.begin());
