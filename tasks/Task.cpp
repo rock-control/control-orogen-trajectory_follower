@@ -90,7 +90,9 @@ void Task::updateHook()
         if(!trajectories.front().spline.isSingleton()){ //check if spline is just a point
             trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
             trajectories.erase(trajectories.begin());
+            state(RECEIVED_VALID_TRAJECTORY);
         }
+        else  new_state = DEGENERATED_TRAJECTORY;
     }
     
     SubTrajectory subTrajectory;
@@ -103,13 +105,14 @@ void Task::updateHook()
     switch(status)
     {
     case TRAJECTORY_FINISHED:
-        if(!trajectories.empty() && !trajectories.front().spline.isSingleton())
-        {
+        if(trajectories.empty()) new_state = FINISHED_TRAJECTORIES;
+        else if(trajectories.front().spline.isSingleton()){ 
+            new_state = DEGENERATED_TRAJECTORY;
+        }
+        else {
             trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
             trajectories.erase(trajectories.begin());
         }
-        else
-            new_state = FINISHED_TRAJECTORIES;
         break;
     case TRAJECTORY_FOLLOWING:
         new_state = FOLLOWING_TRAJECTORY;
