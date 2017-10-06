@@ -87,7 +87,7 @@ void Task::updateHook()
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
 
     if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
-        trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
+        trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
         trajectories.erase(trajectories.begin());
         //emit following once, to let the outside know we got the trajectory
         state(FOLLOWING_TRAJECTORY);

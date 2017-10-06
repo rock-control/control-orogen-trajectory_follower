@@ -16,7 +16,7 @@ task_context "Task" do
             doc "Combined follower config"
 
     # Input ports
-    input_port("trajectory", "std::vector</base/Trajectory>").
+    input_port("trajectory", "std::vector<trajectory_follower/SubTrajectory>").
         doc("Trajectory the robot should follow").
         needs_buffered_connection
 

@@ -26,10 +26,10 @@ namespace trajectory_follower{
      */
     class Task : public TaskBase
     {
-	friend class TaskBase;
+    friend class TaskBase;
     protected:
-	std::vector< base::Trajectory > trajectories;
-	TrajectoryFollower trajectoryFollower;
+        std::vector<SubTrajectory> trajectories;
+        TrajectoryFollower trajectoryFollower;
         Motion2D motionCommand;
         base::samples::RigidBodyState rbpose;
         States new_state;
