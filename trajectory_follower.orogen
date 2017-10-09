@@ -8,6 +8,31 @@ using_library "base-lib"
 
 import_types_from "trajectory_follower/TrajectoryFollowerTypes.hpp"
 import_types_from "trajectory_follower/SubTrajectory.hpp"
+import_types_from "envire_maps"
+
+
+task_context "PoseWatchdog" do
+
+    # Input ports
+    input_port("currentTrajectory", "std::vector<trajectory_follower/SubTrajectory>").
+        doc("the part of the trajectory the robot is currently following").
+        needs_buffered_connection
+
+    input_port("robot_pose", "/base/samples/RigidBodyState").
+        doc "Position and orientation of the Robot"
+        
+    input_port("tr_map", spatio_temporal('/maps/grid/TraversabilityBaseMap3d')).
+        doc "Map the robot is moving on"
+        
+
+    runtime_states :WATCHING, :TRAJECTORY_ABORTED, :WAITING_FOR_DATA
+
+    error_states :ERROR
+
+    needs_configuration
+    port_driven
+
+end
 
 task_context "Task" do
 
@@ -28,8 +53,11 @@ task_context "Task" do
         doc "Drive command that should steer the robot to the target Pose"
 
     output_port("follower_data", "trajectory_follower/FollowerData").
-    	doc "Pose error calculated by NURBSCurve3D"
-    	
+        doc "Pose error calculated by NURBSCurve3D"
+
+    output_port("current_trajectory", "std::vector<trajectory_follower/SubTrajectory>").
+        doc "Pose error calculated by NURBSCurve3D"
+    
     input_port("holonomic_trajectory", "trajectory_follower/SubTrajectory")
 
     # Runtime state for when trajectory finished or when actively following one
