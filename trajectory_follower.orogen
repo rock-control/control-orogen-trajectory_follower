@@ -13,6 +13,10 @@ import_types_from "envire_maps"
 
 task_context "PoseWatchdog" do
 
+    # Properties
+    property("stepHeight", "double", 0.5 ).
+            doc "Maximum step height of the robot."
+            
     # Input ports
     input_port("currentTrajectory", "std::vector<trajectory_follower/SubTrajectory>").
         doc("the part of the trajectory the robot is currently following").
