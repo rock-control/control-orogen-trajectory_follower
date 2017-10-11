@@ -92,9 +92,10 @@ void PoseWatchdog::updateHook()
             _motion_command_override.write(nanCommand);//tell safety that we are still alive
             
             //check pose whenever we get a new pose or a new map
-            if(_robot_pose.readNewest(pose, false) == RTT::NewData ||
-               _tr_map.readNewest(map, false) == RTT::NewData ||
-               _currentTrajectory.readNewest(currentTrajectory, false) == RTT::NewData)
+            //NOTE Do **not** use short circuit or operator here. We need to execute all reads on every loop!
+            if((_robot_pose.readNewest(pose, false) == RTT::NewData) |
+               (_tr_map.readNewest(map, false) == RTT::NewData) |
+               (_currentTrajectory.readNewest(currentTrajectory, false)) == RTT::NewData)
             {
 //                 std::cout << "checking..." << std::endl;
                 if(!checkPose())
@@ -130,6 +131,8 @@ void PoseWatchdog::updateHook()
     }
     
     
+    _tr_map_out.write(map);
+    
     PoseWatchdogBase::updateHook();
 }
 
@@ -144,20 +147,26 @@ bool PoseWatchdog::checkPose()
     {
         //while rescuing from an unstable/unsafe position leaving the map is ok.
         case trajectory_follower::TRAJECTORY_KIND_RESCUE:
+            std::cout << "ignoring rescue trajectory" << std::endl;
             return true;
         case trajectory_follower::TRAJECTORY_KIND_NORMAL:
         {
             const maps::grid::TraversabilityNodeBase* node = map.getData().getClosestNode(pose.position);
             if(node)
             {
-                const double zDist = fabs(node->getHeight() - pose.position.z());
-                if(zDist <= _stepHeight.value() && 
-                   node->getType() == maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                //subtract distToGround to get from robot frame to map frame
+                const double zDist = fabs(node->getHeight() - (pose.position.z() - _distToGround.get()));
+                if(zDist > _stepHeight.value())
                 {
-                    return true;
+                    std::cout << "checkPose: node too far away. Distance: " << zDist << ", allowed distance: " << _stepHeight.value()  << std::endl;
+                    return false;
                 }
-                std::cout << "checkPose: node too far away" << std::endl;
-                return false;
+                if(node->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                {
+                    std::cout << "checkPose: node not traversable." << std::endl;
+                    return false;
+                }
+                return true;
             }
             std::cout << "checkPose: no node at position" << std::endl;
             return false;
