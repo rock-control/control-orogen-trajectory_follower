@@ -29,9 +29,12 @@ namespace trajectory_follower{
         std::vector<SubTrajectory> currentTrajectory;
         base::samples::RigidBodyState pose;
         envire::core::SpatioTemporal<maps::grid::TraversabilityBaseMap3d> map;
+        base::commands::Motion2D haltCommand;
+        base::commands::Motion2D nanCommand;
         bool gotMap;
         bool gotPose;
         bool gotTraj;
+        bool resetWatchdog;
 
     public:
         /** TaskContext constructor for PoseWatchdog
@@ -47,6 +50,9 @@ namespace trajectory_follower{
          */
         PoseWatchdog(std::string const& name, RTT::ExecutionEngine* engine);
 
+        virtual void reset();
+        
+        
         /** Default deconstructor of PoseWatchdog
          */
 	~PoseWatchdog();

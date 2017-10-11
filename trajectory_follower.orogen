@@ -29,6 +29,13 @@ task_context "PoseWatchdog" do
         doc "Map the robot is moving on"
         
 
+    output_port("motion_command_override", "base/commands/Motion2D").
+        doc "This motion command is published whenever the watchdog wants to stop the robot from moving"
+        
+    operation("reset").
+        doc("Resets the watchdog after it was triggered")
+        
+        
     runtime_states :WATCHING, :TRAJECTORY_ABORTED, :WAITING_FOR_DATA
 
     error_states :ERROR
