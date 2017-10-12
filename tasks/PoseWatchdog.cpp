@@ -151,7 +151,7 @@ bool PoseWatchdog::checkPose()
             return true;
         case trajectory_follower::TRAJECTORY_KIND_NORMAL:
         {
-            const maps::grid::TraversabilityNodeBase* node = map.getData().getClosestNode(pose.position);
+            maps::grid::TraversabilityNodeBase* node = map.getData().getClosestNode(pose.position);
             if(node)
             {
                 //subtract distToGround to get from robot frame to map frame
@@ -161,10 +161,34 @@ bool PoseWatchdog::checkPose()
                     std::cout << "checkPose: node too far away. Distance: " << zDist << ", allowed distance: " << _stepHeight.value()  << std::endl;
                     return false;
                 }
-                if(node->getType() != maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                
+                
+                std::deque<maps::grid::TraversabilityNodeBase*> nodes;
+                nodes.push_back(node);
+                std::unordered_set<maps::grid::TraversabilityNodeBase*> visited;
+                const double maxDist = 0.2;
+                const double gridRes = map.getData().getResolution().x();
+                while(nodes.size() > 0)
                 {
-                    std::cout << "checkPose: node not traversable." << std::endl;
-                    return false;
+                    maps::grid::TraversabilityNodeBase* currNode = nodes.front();
+                    nodes.pop_front();
+                    visited.insert(currNode);
+                    
+                    if(currNode->getType() == maps::grid::TraversabilityNodeBase::TRAVERSABLE)
+                    {
+                        for(maps::grid::TraversabilityNodeBase* neighbor : currNode->getConnections())
+                        {
+                            const double dist = (neighbor->getVec3(gridRes).topRows(2) - node->getVec3(gridRes).topRows(2)).norm();
+                            if(dist <= maxDist && visited.find(neighbor) == visited.end())
+                                nodes.push_back(neighbor);
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "checkPose: node not traversable." << std::endl;
+                        return false;
+                    }
+                    
                 }
                 return true;
             }
