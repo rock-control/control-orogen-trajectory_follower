@@ -42,7 +42,7 @@ task_context "PoseWatchdog" do
         doc("Resets the watchdog after it was triggered")
         
         
-    runtime_states :WATCHING, :TRAJECTORY_ABORTED, :WAITING_FOR_DATA
+    runtime_states :WATCHING, :TRAJECTORY_ABORTED, :WAITING_FOR_DATA, :RESETTED
 
     error_states :ERROR
 

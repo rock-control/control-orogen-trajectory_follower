@@ -34,7 +34,6 @@ namespace trajectory_follower{
         bool gotMap;
         bool gotPose;
         bool gotTraj;
-        bool resetWatchdog;
 
     public:
         /** TaskContext constructor for PoseWatchdog

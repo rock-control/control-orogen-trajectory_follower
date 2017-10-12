@@ -38,7 +38,6 @@ bool PoseWatchdog::configureHook()
     gotMap = false;
     gotPose = false;
     gotTraj = false;
-    resetWatchdog = false;
     haltCommand.heading = base::Angle::fromRad(0);
     haltCommand.translation = 0;
     haltCommand.rotation = 0;
@@ -109,19 +108,23 @@ void PoseWatchdog::updateHook()
             }
             break;
         case TRAJECTORY_ABORTED:
-            
-            if(resetWatchdog)
-            {
-                std::cout << "Watchdog reset" << std::endl;
-                resetWatchdog = false;
-                _motion_command_override.write(nanCommand);
-                state(WATCHING);
-                
-            }
-            else
-            {
                 //keep overriding until someone resets the state
                 _motion_command_override.write(haltCommand);
+            
+            break;
+        case RESETTED:
+            std::cout << "waiting for valid pose" << std::endl;
+            //until we get a valid pose we simply belive that everything is fine... HACK
+            _motion_command_override.write(nanCommand);//tell safety that we are still alive
+            
+            if((_robot_pose.readNewest(pose, false) == RTT::NewData) |
+               (_tr_map.readNewest(map, false) == RTT::NewData) |
+               (_currentTrajectory.readNewest(currentTrajectory, false)) == RTT::NewData)
+            {
+                if(checkPose())
+                {
+                    state(WATCHING);
+                }
             }
             
             break;
@@ -205,7 +208,7 @@ bool PoseWatchdog::checkPose()
 
 void PoseWatchdog::reset()
 {
-    resetWatchdog = true;
+    state(RESETTED);
 }
 
 
