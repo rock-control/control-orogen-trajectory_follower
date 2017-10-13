@@ -123,6 +123,7 @@ void PoseWatchdog::updateHook()
             {
                 if(checkPose())
                 {
+                    std::cout << "got valid pose, WATCHING" << std::endl;
                     state(WATCHING);
                 }
             }
@@ -169,7 +170,7 @@ bool PoseWatchdog::checkPose()
                 std::deque<maps::grid::TraversabilityNodeBase*> nodes;
                 nodes.push_back(node);
                 std::unordered_set<maps::grid::TraversabilityNodeBase*> visited;
-                const double maxDist = 0.2;
+                const double maxDist = 0.1;
                 const double gridRes = map.getData().getResolution().x();
                 while(nodes.size() > 0)
                 {
@@ -188,6 +189,7 @@ bool PoseWatchdog::checkPose()
                     }
                     else
                     {
+DRAW_CYLINDER("growCheckFail", currNode->getVec3(gridRes), base::Vector3d(0.1, 0.1, 0.8), vizkit3dDebugDrawings::Color::yellow);
                         std::cout << "checkPose: node not traversable." << std::endl;
                         return false;
                     }
