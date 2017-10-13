@@ -11,46 +11,6 @@ import_types_from "trajectory_follower/SubTrajectory.hpp"
 import_types_from "envire_maps"
 
 
-task_context "PoseWatchdog" do
-
-    # Properties
-    property("stepHeight", "double", 0.5 ).
-            doc "Maximum step height of the robot."
-            
-    property("distToGround", "double", 0.2 ).
-            doc "Distance between robot origin and ground"
-            
-    # Input ports
-    input_port("currentTrajectory", "std::vector<trajectory_follower/SubTrajectory>").
-        doc("the part of the trajectory the robot is currently following").
-        needs_buffered_connection
-
-    input_port("robot_pose", "/base/samples/RigidBodyState").
-        doc "Position and orientation of the Robot"
-        
-    input_port("tr_map", spatio_temporal('/maps/grid/TraversabilityBaseMap3d')).
-        doc "Map the robot is moving on"
-        
-    
-    output_port("tr_map_out", spatio_temporal('/maps/grid/TraversabilityBaseMap3d')).
-        doc "Map the robot is moving on"
-
-    output_port("motion_command_override", "base/commands/Motion2D").
-        doc "This motion command is published whenever the watchdog wants to stop the robot from moving"
-        
-    operation("reset").
-        doc("Resets the watchdog after it was triggered")
-        
-        
-    runtime_states :WATCHING, :TRAJECTORY_ABORTED, :WAITING_FOR_DATA, :RESETTED
-
-    error_states :ERROR
-
-    needs_configuration
-    port_driven
-
-end
-
 task_context "Task" do
 
     # Properties
