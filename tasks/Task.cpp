@@ -108,6 +108,7 @@ void Task::updateHook()
         if(!trajectories.empty())
         {
             trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
+            _current_trajectory.write(trajectoryFollower.getData().currentTrajectory);
             trajectories.erase(trajectories.begin());
         }
         else
@@ -137,7 +138,6 @@ void Task::updateHook()
     }
     
     _follower_data.write(trajectoryFollower.getData());
-    _current_trajectory.write(trajectoryFollower.getData().currentTrajectory);
     _motion_command.write(motionCommand.toBaseMotion2D());
 
     // update task state
