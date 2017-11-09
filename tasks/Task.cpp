@@ -88,6 +88,7 @@ void Task::updateHook()
 
     if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
         trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
+        _current_trajectory.write(trajectoryFollower.getData().currentTrajectory);
         trajectories.erase(trajectories.begin());
         //emit following once, to let the outside know we got the trajectory
         state(FOLLOWING_TRAJECTORY);
@@ -96,6 +97,7 @@ void Task::updateHook()
     SubTrajectory subTrajectory;
     if (_holonomic_trajectory.readNewest(subTrajectory, false) == RTT::NewData) {
         trajectoryFollower.setNewTrajectory(subTrajectory, robotPose);
+        _current_trajectory.write(trajectoryFollower.getData().currentTrajectory);
         //emit following once, to let the outside know we got the trajectory
         state(FOLLOWING_TRAJECTORY);
     }
