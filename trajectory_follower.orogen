@@ -39,6 +39,7 @@ task_context "Task" do
     # particular trajectory. Note that the component might switch back to
     # runtime state if a new trajectory / new pose is received
     error_states :STABILITY_FAILED
+    error_states :INVALID_INPUT_DATA
 
     needs_configuration
     port_driven
