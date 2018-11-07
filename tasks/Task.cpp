@@ -3,6 +3,7 @@
 #include "Task.hpp"
 #include <base-logging/Logging.hpp>
 #include <random>
+#include <base/wrappers/geometry/Spline.hpp>
 
 using namespace trajectory_follower;
 
@@ -87,6 +88,17 @@ void Task::updateHook()
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
 
     if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
+        //Check if spline is degenerate
+        for(base::Trajectory tr : trajectories){
+            wrappers::geometry::Spline spline(tr.spline);
+            if(spline.kind == wrappers::geometry::DEGENERATE){
+                LOG_ERROR_S << "Received trajectories include degenerate spline. Igoring.";
+                trajectories.clear();
+                state(INVALID_INPUT_DATA);
+                return;
+            }
+        }
+
         trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
         trajectories.erase(trajectories.begin());
         //emit following once, to let the outside know we got the trajectory
@@ -99,7 +111,6 @@ void Task::updateHook()
         //emit following once, to let the outside know we got the trajectory
         state(FOLLOWING_TRAJECTORY);
     }
-
     FollowerStatus status = trajectoryFollower.traverseTrajectory(motionCommand, robotPose);
 
     switch(status)
@@ -110,8 +121,9 @@ void Task::updateHook()
             trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
             trajectories.erase(trajectories.begin());
         }
-        else
+        else{
             new_state = FINISHED_TRAJECTORIES;
+        }
         break;
     case TRAJECTORY_FOLLOWING:
         new_state = FOLLOWING_TRAJECTORY;
