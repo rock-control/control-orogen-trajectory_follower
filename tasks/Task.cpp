@@ -24,6 +24,8 @@ std::string Task::printState(const TaskBase::States& state)
 {
     switch(state)
     {
+        case DEGENERATED_TRAJECTORY:
+            return "DEGENERATED_TRAJECTORY";
         case FINISHED_TRAJECTORIES:
             return "FINISHED_TRAJECTORIES";
         case FOLLOWING_TRAJECTORY:
@@ -87,10 +89,12 @@ void Task::updateHook()
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
 
     if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
-        trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
-        trajectories.erase(trajectories.begin());
-        //emit following once, to let the outside know we got the trajectory
-        state(FOLLOWING_TRAJECTORY);
+        if(!trajectories.front().spline.isSingleton()){ //check if spline is just a point
+            trajectoryFollower.setNewTrajectory(SubTrajectory(trajectories.front()), robotPose);
+            trajectories.erase(trajectories.begin());
+            state(FOLLOWING_TRAJECTORY);
+        }
+        else  new_state = DEGENERATED_TRAJECTORY;
     }
     
     SubTrajectory subTrajectory;
@@ -105,13 +109,14 @@ void Task::updateHook()
     switch(status)
     {
     case TRAJECTORY_FINISHED:
-        if(!trajectories.empty())
-        {
+        if(trajectories.empty()) new_state = FINISHED_TRAJECTORIES;
+        else if(trajectories.front().spline.isSingleton()){ 
+            new_state = DEGENERATED_TRAJECTORY;
+        }
+        else {
             trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
             trajectories.erase(trajectories.begin());
         }
-        else
-            new_state = FINISHED_TRAJECTORIES;
         break;
     case TRAJECTORY_FOLLOWING:
         new_state = FOLLOWING_TRAJECTORY;

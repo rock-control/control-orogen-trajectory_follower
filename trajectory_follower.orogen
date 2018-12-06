@@ -33,7 +33,7 @@ task_context "Task" do
     input_port("holonomic_trajectory", "trajectory_follower/SubTrajectory")
 
     # Runtime state for when trajectory finished or when actively following one
-    runtime_states :FINISHED_TRAJECTORIES, :FOLLOWING_TRAJECTORY, :TURN_ON_SPOT, :LATERAL, :SLAM_POSE_INVALID
+    runtime_states :FINISHED_TRAJECTORIES, :FOLLOWING_TRAJECTORY, :TURN_ON_SPOT, :LATERAL, :SLAM_POSE_INVALID, :DEGENERATED_TRAJECTORY
 
     # Runtime error state entered when the initial stability test failed for a
     # particular trajectory. Note that the component might switch back to
