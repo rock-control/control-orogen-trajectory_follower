@@ -18,6 +18,10 @@ task_context "Task" do
     # Input ports
     input_port("trajectory", "std::vector</base/Trajectory>").
         doc("Trajectory the robot should follow").
+        needs_buffered_connection   
+    
+    input_port("subtrajectory", "std::vector<trajectory_follower/SubTrajectory>").
+        doc("Trajectory the robot should follow").
         needs_buffered_connection
 
     input_port("robot_pose", "/base/samples/RigidBodyState").

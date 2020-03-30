@@ -28,7 +28,7 @@ namespace trajectory_follower{
     {
 	friend class TaskBase;
     protected:
-	std::vector< base::Trajectory > trajectories;
+	std::vector<SubTrajectory> trajectories;
 	TrajectoryFollower trajectoryFollower;
         Motion2D motionCommand;
         base::samples::RigidBodyState rbpose;
