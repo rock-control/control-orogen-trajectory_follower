@@ -72,7 +72,7 @@ void Task::updateHook()
 
     if( _robot_pose.readNewest( rbpose ) == RTT::NoData)
     {
-        if( !trajectories.empty() )
+        if( !subtrajectories.empty() || !trajectories.empty() )
         {
             LOG_WARN_S << "Clearing old trajectories, since there is no "
                        "trajectory or pose data.";
@@ -86,7 +86,14 @@ void Task::updateHook()
 
     base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
      
-     if (_subtrajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
+     if (_subtrajectory.readNewest(subtrajectories, false) == RTT::NewData && !subtrajectories.empty()) {
+        trajectoryFollower.setNewTrajectory(subtrajectories.front(), robotPose);
+        subtrajectories.erase(subtrajectories.begin());
+        //emit following once, to let the outside know we got the trajectory
+        state(FOLLOWING_TRAJECTORY);
+    }
+
+    if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
         trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
         trajectories.erase(trajectories.begin());
         //emit following once, to let the outside know we got the trajectory
@@ -109,6 +116,11 @@ void Task::updateHook()
         {
             trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
             trajectories.erase(trajectories.begin());
+        }
+        else if(!subtrajectories.empty())
+        {
+            trajectoryFollower.setNewTrajectory(subtrajectories.front(), robotPose);
+            subtrajectories.erase(subtrajectories.begin());
         }
         else
             new_state = FINISHED_TRAJECTORIES;
