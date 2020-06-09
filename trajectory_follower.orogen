@@ -7,8 +7,6 @@ using_library "trajectory_follower"
 using_library "base-lib"
 
 import_types_from "trajectory_follower/TrajectoryFollowerTypes.hpp"
-import_types_from "trajectory_follower/SubTrajectory.hpp"
-import_types_from "envire_maps"
 
 
 task_context "Task" do
