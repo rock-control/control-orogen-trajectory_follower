@@ -7,7 +7,7 @@ using_library "trajectory_follower"
 using_library "base-lib"
 
 import_types_from "trajectory_follower/TrajectoryFollowerTypes.hpp"
-import_types_from "trajectory_follower/SubTrajectory.hpp"
+
 
 task_context "Task" do
 
@@ -16,7 +16,7 @@ task_context "Task" do
             doc "Combined follower config"
 
     # Input ports
-    input_port("trajectory", "std::vector</base/Trajectory>").
+    input_port("trajectory", "std::vector<trajectory_follower/SubTrajectory>").
         doc("Trajectory the robot should follow").
         needs_buffered_connection
 
@@ -28,8 +28,11 @@ task_context "Task" do
         doc "Drive command that should steer the robot to the target Pose"
 
     output_port("follower_data", "trajectory_follower/FollowerData").
-    	doc "Pose error calculated by NURBSCurve3D"
-    	
+        doc "Pose error calculated by NURBSCurve3D"
+
+    output_port("current_trajectory", "std::vector<trajectory_follower/SubTrajectory>").
+        doc "Pose error calculated by NURBSCurve3D"
+    
     input_port("holonomic_trajectory", "trajectory_follower/SubTrajectory")
 
     # Runtime state for when trajectory finished or when actively following one
