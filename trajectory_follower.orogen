@@ -20,8 +20,11 @@ task_context "Task" do
         doc("Trajectory the robot should follow").
         needs_buffered_connection
 
-    input_port("robot_pose", "/base/samples/RigidBodyState").
-        doc "Position and orientation of the Robot"
+    # Transformations
+    transformer do
+        transform "robot", "map"
+        max_latency 0.01
+    end
 
     # Output ports
     output_port("motion_command", "base/commands/Motion2D").
@@ -44,7 +47,7 @@ task_context "Task" do
     error_states :STABILITY_FAILED
 
     needs_configuration
-    port_driven
+    periodic 0.01
 end
 
 task_context "TurnVelocityToSteerAngleTask" do

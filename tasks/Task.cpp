@@ -70,21 +70,16 @@ void Task::updateHook()
     motionCommand.rotation    = 0;
     motionCommand.heading     = 0;
 
-    if( _robot_pose.readNewest( rbpose ) == RTT::NoData)
+    Eigen::Affine3d robot2map;
+    if(!_robot2map.get(base::Time::now(), robot2map, false))
     {
-        if( !trajectories.empty() )
-        {
-            LOG_WARN_S << "Clearing old trajectories, since there is no "
-                       "trajectory or pose data.";
-        }
-
+        LOG_ERROR_S << "Could not get robot pose!" << std::endl;
         trajectoryFollower.removeTrajectory();
         _motion_command.write(motionCommand.toBaseMotion2D());
-
         return;
     }
 
-    base::Pose robotPose = base::Pose( rbpose.position, rbpose.orientation );
+    base::Pose robotPose(robot2map);
 
     if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
         trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
