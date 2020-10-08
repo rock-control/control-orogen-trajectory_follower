@@ -31,7 +31,6 @@ namespace trajectory_follower{
         std::vector<SubTrajectory> trajectories;
         TrajectoryFollower trajectoryFollower;
         Motion2D motionCommand;
-        base::samples::RigidBodyState rbpose;
         States new_state;
         States current_state;
 
