@@ -3,5 +3,6 @@
   <depend package="control/trajectory_follower"/>
   <depend package="base/orogen/types"/>
   <depend package="orogen"/>
+  <depend package="drivers/orogen/transformer"/>
   <tags>stable</tags>
 </package>
