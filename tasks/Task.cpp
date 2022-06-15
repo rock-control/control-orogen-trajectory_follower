@@ -135,7 +135,13 @@ void Task::updateHook()
     }
     
     _follower_data.write(trajectoryFollower.getData());
-    _motion_command.write(motionCommand.toBaseMotion2D());
+    
+    if ( current_state != RUNNING &&
+         current_state != FINISHED_TRAJECTORIES &&
+         not _send_zero_cmd_once.value() )
+    {
+        _motion_command.write(motionCommand.toBaseMotion2D());
+    }
 
     // update task state
     if(current_state != new_state)
