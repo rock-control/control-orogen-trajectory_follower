@@ -15,7 +15,7 @@ task_context "Task" do
     property("follower_config", "trajectory_follower/FollowerConfig" ).
             doc "Combined follower config"
 
-    property("send_zero_cmd_once", "bool", true).
+    property("send_zero_cmd_once", "bool", false).
             doc "Don't send zero motion_commands repetitively"
 
     # Input ports
