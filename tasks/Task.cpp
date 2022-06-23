@@ -14,6 +14,9 @@ Task::Task(std::string const& name)
 Task::Task(std::string const& name, RTT::ExecutionEngine* engine)
     : TaskBase(name, engine)
 {
+    lastMotionCommand.translation = 0;
+    lastMotionCommand.rotation    = 0;
+    lastMotionCommand.heading     = 0;
 }
 
 Task::~Task()
@@ -39,6 +42,13 @@ std::string Task::printState(const TaskBase::States& state)
         default:
             return "UNKNOWN_STATE";
     }
+}
+
+bool Task::isMotionCommandZero(const Motion2D& mc)
+{
+    return ( mc.translation == 0 &&
+             mc.rotation    == 0 &&
+             mc.heading     == 0 );
 }
 
 /// The following lines are template definitions for the various state machine
@@ -135,11 +145,14 @@ void Task::updateHook()
     }
     
     _follower_data.write(trajectoryFollower.getData());
-    
-    if ( current_state != RUNNING &&
-         current_state != FINISHED_TRAJECTORIES &&
-         not _send_zero_cmd_once.value() )
+   
+
+    if ( not ( isMotionCommandZero(lastMotionCommand) &&
+               isMotionCommandZero(motionCommand)     &&
+               _send_zero_cmd_once.value() )
+       )
     {
+        lastMotionCommand = motionCommand;
         _motion_command.write(motionCommand.toBaseMotion2D());
     }
 
