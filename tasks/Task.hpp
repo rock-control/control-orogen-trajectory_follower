@@ -31,10 +31,12 @@ namespace trajectory_follower{
         std::vector<SubTrajectory> trajectories;
         TrajectoryFollower trajectoryFollower;
         Motion2D motionCommand;
+        Motion2D lastMotionCommand;
         States new_state;
         States current_state;
 
         std::string printState(const States& state);
+        bool isMotionCommandZero(const Motion2D& mc);
 
     public:
         /** TaskContext constructor for Task
