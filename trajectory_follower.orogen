@@ -76,6 +76,23 @@ task_context "TurnVelocityToSteerAngleTask" do
     port_driven
 end
 
+task_context "TrajectoryConverter" do
+    # Properties
+    property("velocity", "double", 0.1).
+        doc("Driving velocity that will be set on the generated trajectory.")
+
+    # Input ports
+    input_port("poses", "std::vector<base/Pose>").
+        doc("List of poses that form a trajectory")
+
+    # Output ports
+    output_port("trajectory", "std::vector<trajectory_follower/SubTrajectory>").
+        doc("Trajectory the robot should follow")
+
+    needs_configuration
+    port_driven
+end
+
 deployment "test_trajectory" do
     do_not_install
     trajectory_task = task("trajectory", "Task")
