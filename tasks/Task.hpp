@@ -38,6 +38,7 @@ namespace trajectory_follower{
         std::string printState(const States& state);
         bool isMotionCommandZero(const Motion2D& mc);
 
+        virtual bool cancelCurrentTrajectory();
     public:
         /** TaskContext constructor for Task
          * \param name Name of the task. This name needs to be unique to make it identifiable via nameservices.
@@ -113,6 +114,7 @@ namespace trajectory_follower{
          * before calling start() again.
          */
         void cleanupHook();
+
     };
 }
 

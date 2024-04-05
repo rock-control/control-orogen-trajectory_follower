@@ -41,6 +41,10 @@ task_context "Task" do
     
     input_port("holonomic_trajectory", "trajectory_follower/SubTrajectory")
 
+    operation("cancelCurrentTrajectory").
+        returns("bool").
+        doc("Stops following the current trajectory. Will start following the next incoming trajectory")
+
     # Runtime state for when trajectory finished or when actively following one
     runtime_states :FINISHED_TRAJECTORIES, :FOLLOWING_TRAJECTORY, :TURN_ON_SPOT, :LATERAL, :SLAM_POSE_INVALID
 
