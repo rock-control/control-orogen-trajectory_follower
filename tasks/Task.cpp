@@ -205,7 +205,6 @@ bool Task::cancelCurrentTrajectory()
         LOG_ERROR_S << "Could not remove trajectory: " << e.what();
         return false;
     }
-    trajectoryFollower.removeTrajectory();
-    trajectories = std::vector<SubTrajectory>();
+    trajectories.clear();
     return true;
 }
