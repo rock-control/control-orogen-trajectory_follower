@@ -194,3 +194,17 @@ void Task::cleanupHook()
 {
     TaskBase::cleanupHook();
 }
+
+bool Task::cancelCurrentTrajectory()
+{
+    LOG_INFO_S << "Current trajectory cancellation requested";
+    // try to remove the trajectory and if no exception occurs, return true
+    try {
+        trajectoryFollower.removeTrajectory();
+    } catch (std::runtime_error& e) {
+        LOG_ERROR_S << "Could not remove trajectory: " << e.what();
+        return false;
+    }
+    trajectories.clear();
+    return true;
+}
