@@ -30,10 +30,10 @@ namespace trajectory_follower{
     protected:
         std::vector<SubTrajectory> trajectories;
         TrajectoryFollower trajectoryFollower;
-        Motion2D motionCommand;
         Motion2D lastMotionCommand;
-        States new_state;
-        States current_state;
+        States new_state = PRE_OPERATIONAL;
+        States current_state = PRE_OPERATIONAL;
+        base::Time lastPoseUpdate;
 
         std::string printState(const States& state);
         bool isMotionCommandZero(const Motion2D& mc);
@@ -55,7 +55,7 @@ namespace trajectory_follower{
 
         /** Default deconstructor of Task
          */
-	~Task();
+        ~Task();
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the

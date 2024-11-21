@@ -39,6 +39,8 @@ std::string Task::printState(const TaskBase::States& state)
             return "TURN_ON_SPOT";
         case STABILITY_FAILED:
             return "STABILITY_FAILED";
+        case NO_POSITION_UPDATES:
+            return "NO_POSITION_UPDATES";
         default:
             return "UNKNOWN_STATE";
     }
@@ -70,27 +72,40 @@ bool Task::startHook()
 
     if (! TaskBase::startHook())
         return false;
+    _robot2map.registerUpdateCallback([this](const base::Time& time){lastPoseUpdate = time;});
     return true;
 }
 void Task::updateHook()
 {
     TaskBase::updateHook();
 
-    motionCommand.translation = 0;
-    motionCommand.rotation    = 0;
-    motionCommand.heading     = 0;
+    Motion2D motionCommand{};
+
+    base::Time now;
+    if(_simulated_time.connected())
+    {
+        if(_simulated_time.readNewest(now)==RTT::NoData)
+        {
+            LOG_ERROR_S << "Connected to simulated time, but got no time input. Aborting update.\n";
+            return;
+        }
+    }
+    else
+    {
+        now = base::Time::now();
+    }
 
     Eigen::Affine3d robot2map;
-    if(!_robot2map.get(base::Time::now(), robot2map, false))
+    if(!_robot2map.get(lastPoseUpdate, robot2map, false))
     {
         LOG_ERROR_S << "Could not get robot pose!" << std::endl;
         trajectoryFollower.removeTrajectory();
         _motion_command.write(motionCommand.toBaseMotion2D());
+        state(SLAM_POSE_INVALID);
         return;
     }
 
     base::Pose robotPose(robot2map);
-
     if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
         trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
         _current_trajectory.write(trajectoryFollower.getData().currentTrajectory);
@@ -155,7 +170,17 @@ void Task::updateHook()
     }
     
     _follower_data.write(trajectoryFollower.getData());
-   
+
+    base::Time const latency = now - lastPoseUpdate;
+    if(latency > base::Time::fromSeconds(_transformer_max_latency.value())){
+        LOG_ERROR_S << "No position updates since " << lastPoseUpdate << " (" << latency.toSeconds() << "s ago)\n";
+        new_state = NO_POSITION_UPDATES;
+        if(_send_zero_cmd_on_timeout)
+        {
+            motionCommand = Motion2D{};
+        }
+    }
+
 
     if ( not ( isMotionCommandZero(lastMotionCommand) &&
                isMotionCommandZero(motionCommand)     &&
@@ -182,9 +207,7 @@ void Task::errorHook()
 
 void Task::stopHook()
 {
-    motionCommand.translation = 0;
-    motionCommand.rotation    = 0;
-    motionCommand.heading     = 0;
+    Motion2D motionCommand{};
     _motion_command.write(motionCommand.toBaseMotion2D());
 
     TaskBase::stopHook();

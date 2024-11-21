@@ -17,11 +17,16 @@ task_context "Task" do
 
     property("send_zero_cmd_once", "bool", false).
             doc "Don't send zero motion_commands repetitively"
+    property("send_zero_cmd_on_timeout", "bool", false).
+            doc "If no pose update arrived within `max_latency`, send a zero command to make the robot stop. By default, no command is send"
 
     # Input ports
     input_port("trajectory", "std::vector<trajectory_follower/SubTrajectory>").
         doc("Trajectory the robot should follow").
         needs_buffered_connection
+
+    input_port("simulated_time", "base::Time").
+        doc "When running on simulation or log data, you can connect this to a port which outputs the simulated current time. If this port is unconnected base::Time::now() is used."
 
     # Transformations
     transformer do
@@ -46,7 +51,7 @@ task_context "Task" do
         doc("Stops following the current trajectory. Will start following the next incoming trajectory")
 
     # Runtime state for when trajectory finished or when actively following one
-    runtime_states :FINISHED_TRAJECTORIES, :FOLLOWING_TRAJECTORY, :TURN_ON_SPOT, :LATERAL, :SLAM_POSE_INVALID
+    runtime_states :FINISHED_TRAJECTORIES, :FOLLOWING_TRAJECTORY, :TURN_ON_SPOT, :LATERAL, :SLAM_POSE_INVALID, :NO_POSITION_UPDATES
 
     # Runtime error state entered when the initial stability test failed for a
     # particular trajectory. Note that the component might switch back to
