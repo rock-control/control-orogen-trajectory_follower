@@ -179,7 +179,7 @@ void Task::updateHook()
     if(latency > base::Time::fromSeconds(_transformer_max_latency.value())){
         LOG_ERROR_S << "No position updates since " << lastPoseUpdate << " (" << latency.toSeconds() << "s ago)\n";
         new_state = NO_POSITION_UPDATES;
-        if(_send_zero_cmd_on_timeout)
+        if(_send_zero_cmd_on_timeout.value())
         {
             motionCommand = Motion2D{};
         }
