@@ -106,7 +106,9 @@ void Task::updateHook()
     }
 
     base::Pose robotPose(robot2map);
-    if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()) {
+    if (_trajectory.readNewest(trajectories, false) == RTT::NewData && !trajectories.empty()
+         && !trajectories.front().posSpline.isSingleton()) {
+
         trajectoryFollower.setNewTrajectory(trajectories.front(), robotPose);
         _current_trajectory.write(trajectoryFollower.getData().currentTrajectory);
         trajectories.erase(trajectories.begin());
@@ -115,7 +117,9 @@ void Task::updateHook()
     }
     
     SubTrajectory subTrajectory;
-    if (_holonomic_trajectory.readNewest(subTrajectory, false) == RTT::NewData) {
+    if (_holonomic_trajectory.readNewest(subTrajectory, false) == RTT::NewData 
+        && !subTrajectory.posSpline.isSingleton()) {
+
         trajectoryFollower.setNewTrajectory(subTrajectory, robotPose);
         _current_trajectory.write(trajectoryFollower.getData().currentTrajectory);
         //emit following once, to let the outside know we got the trajectory
@@ -175,7 +179,7 @@ void Task::updateHook()
     if(latency > base::Time::fromSeconds(_transformer_max_latency.value())){
         LOG_ERROR_S << "No position updates since " << lastPoseUpdate << " (" << latency.toSeconds() << "s ago)\n";
         new_state = NO_POSITION_UPDATES;
-        if(_send_zero_cmd_on_timeout)
+        if(_send_zero_cmd_on_timeout.value())
         {
             motionCommand = Motion2D{};
         }
